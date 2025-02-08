@@ -2,7 +2,7 @@
 
 # Variables
 APP_NAME = TheEditor
-MAIN_JAR = editor-1.0-SNAPSHOT-jar-with-dependencies.jar
+MAIN_JAR = editor-1.0.2-SNAPSHOT-jar-with-dependencies.jar
 MAIN_CLASS = com.github.an0nn30.Main
 ICON_PATH = src/main/resources/the-editor.icns
 APP_VERSION = 1.0.0
