@@ -3,6 +3,7 @@ package com.github.an0nn30.ui;
 
 import javax.swing.*;
 import java.awt.Toolkit;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 public class EditorMenuBar {
@@ -47,7 +48,12 @@ public class EditorMenuBar {
         JMenuItem closeTabItem = new JMenuItem("Close Tab");
         closeTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        closeTabItem.addActionListener(e -> editorFrame.getTabManager().closeCurrentTab());
+        closeTabItem.addActionListener(e -> {
+            int tabCount = editorFrame.getTabManager().getTabbedPane().getTabCount();
+            if (tabCount > 1) {
+                editorFrame.getTabManager().closeCurrentTab();
+            }
+        });
         fileMenu.add(closeTabItem);
 
         // Settings
@@ -70,6 +76,42 @@ public class EditorMenuBar {
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         decreaseFontSize.addActionListener(e -> editorFrame.getTabManager().adjustFontSize(-2));
         viewMenu.add(decreaseFontSize);
+
+        JMenuItem prevTab = new JMenuItem("Previous Tab");
+        prevTab.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_OPEN_BRACKET,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.META_DOWN_MASK
+        ));
+        prevTab.addActionListener(e -> {
+            // Assuming you have access to your JTabbedPane
+            JTabbedPane tabbedPane = editorFrame.getTabManager().getTabbedPane();
+            int tabCount = tabbedPane.getTabCount();
+            if (tabCount > 0) {
+                int currentIndex = tabbedPane.getSelectedIndex();
+                // Cycle to the previous tab (wrap around to the last tab)
+                int previousIndex = (currentIndex - 1 + tabCount) % tabCount;
+                tabbedPane.setSelectedIndex(previousIndex);
+            }
+        });
+        viewMenu.add(prevTab);
+
+// Next Tab: cmd+shift+] (VK_CLOSE_BRACKET)
+        JMenuItem nextTab = new JMenuItem("Next Tab");
+        nextTab.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_CLOSE_BRACKET,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.META_DOWN_MASK
+        ));
+        nextTab.addActionListener(e -> {
+            JTabbedPane tabbedPane = editorFrame.getTabManager().getTabbedPane();
+            int tabCount = tabbedPane.getTabCount();
+            if (tabCount > 0) {
+                int currentIndex = tabbedPane.getSelectedIndex();
+                // Cycle to the next tab (wrap around to the first tab)
+                int nextIndex = (currentIndex + 1) % tabCount;
+                tabbedPane.setSelectedIndex(nextIndex);
+            }
+        });
+        viewMenu.add(nextTab);
 
         menuBar.add(fileMenu);
         menuBar.add(viewMenu);
