@@ -25,7 +25,6 @@ public class Main {
                             JOptionPane.ERROR_MESSAGE);
                 }
             }
-
             frame.setVisible(true);
         });
     }

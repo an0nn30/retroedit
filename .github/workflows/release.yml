@@ -1,0 +1,93 @@
+name: Release Automation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_release:
+    runs-on: macos-latest
+    steps:
+      # 1. Check out the repository (fetch full history so that tags can be pushed)
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # 2. Set up Java 23 (ensuring Maven, jpackage, etc. are available)
+      - name: Set up Java 23
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '23'
+          cache: maven
+
+      # 3. Extract version from pom.xml
+      - name: Extract version from pom.xml
+        id: extract_version
+        run: |
+          echo "Extracting version from pom.xml..."
+          # Try xmllint first (commonly available on macOS); fallback to sed if necessary.
+          if command -v xmllint &> /dev/null; then
+            VERSION=$(xmllint --xpath "/*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
+          else
+            VERSION=$(sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' pom.xml | head -n 1)
+          fi
+          echo "Found version: $VERSION"
+          # Export the version so subsequent steps can use it
+          echo "::set-output name=VERSION::$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # 4. Create a Git tag based on the version (if it doesn’t already exist)
+      - name: Create Git tag
+        run: |
+          VERSION=${{ env.VERSION }}
+          echo "Tagging commit with v$VERSION..."
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists; skipping."
+          else
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
+
+      # 5. Build and release using your Makefile (runs tests, builds, packages, and signs)
+      - name: Build and Release
+        run: make deploy
+
+      # 6. Package the generated .app directory as a zip file for release
+      - name: Package app artifact as zip
+        run: |
+          echo "Packaging TheEditor.app as zip..."
+          # Change directory into the output folder and zip the app
+          cd output
+          # Remove any pre-existing zip to avoid conflicts
+          rm -f TheEditor.app.zip
+          zip -r TheEditor.app.zip TheEditor.app
+          ls -l TheEditor.app.zip
+
+      # 7. Create a GitHub release for the tag (using the version number)
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
+          body: "Automated release of version v${{ env.VERSION }}."
+          draft: false
+          prerelease: false
+
+      # 8. Upload the zip file as a release asset for downloads
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./output/TheEditor.app.zip
+          asset_name: TheEditor.app.zip
+          asset_content_type: application/zip
