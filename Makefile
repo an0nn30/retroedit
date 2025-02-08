@@ -1,11 +1,15 @@
 # Makefile for building, packaging, and signing TheEditor app
+# Extract the version from pom.xml.
+# If xmllint isn't available on your system, you could instead use:
+# VERSION := $(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' pom.xml | head -n 1)
+VERSION := $(shell xmllint --xpath "/*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
 
 # Variables
 APP_NAME = TheEditor
-MAIN_JAR = editor-1.0.2-SNAPSHOT-jar-with-dependencies.jar
+MAIN_JAR = editor-$(VERSION)-jar-with-dependencies.jar
 MAIN_CLASS = com.github.an0nn30.Main
 ICON_PATH = src/main/resources/the-editor.icns
-APP_VERSION = 1.0.0
+APP_VERSION = $(VERSION)
 VENDOR = "An0nn30"
 OUTPUT_DIR = output/
 TARGET_DIR = target/
@@ -24,7 +28,7 @@ jar:
 # Create the macOS app using jpackage
 .PHONY: deploy
 deploy: jar
-	rm -rf output && \
+	rm -rf output/ && \
 	jpackage --type app-image \
 	  --name $(APP_NAME) \
 	  --input $(TARGET_DIR) \
@@ -38,11 +42,24 @@ deploy: jar
 	  --verbose
 
 # Sign the application with Apple's Developer ID
-.PHONY: sign
-sign: deploy
-	codesign --deep --force --verbose \
-	  --sign "$(DEV_ID)" \
-	  $(APP_PATH)
+#.PHONY: sign
+#sign: deploy
+#	codesign --deep --force --verbose \
+#	  --sign "$(DEV_ID)" \
+#	  $(APP_PATH)
+
+# Create a DMG with the signed .app file
+.PHONY: dmg
+dmg: deploy
+	jpackage --type dmg \
+	  --name $(APP_NAME) \
+	  --app-image $(APP_PATH) \
+	  --icon $(ICON_PATH) \
+	  --app-version $(APP_VERSION) \
+	  --vendor $(VENDOR) \
+	  --dest $(OUTPUT_DIR) \
+	  --verbose
+
 
 # Clean generated files
 .PHONY: clean

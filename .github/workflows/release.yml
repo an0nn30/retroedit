@@ -55,20 +55,20 @@ jobs:
 
       # 5. Build and release using your Makefile (runs tests, builds, packages, and signs)
       - name: Build and Release
-        run: make deploy
+        run: make dmg
 
-      # 6. Package the generated .app directory as a zip file for release
-      - name: Package app artifact as zip
-        run: |
-          echo "Packaging TheEditor.app as zip..."
-          # Change directory into the output folder and zip the app
-          cd output
-          # Remove any pre-existing zip to avoid conflicts
-          rm -f TheEditor.app.zip
-          zip -r TheEditor.app.zip TheEditor.app
-          ls -l TheEditor.app.zip
+#      # 6. Package the generated .app directory as a zip file for release
+#      - name: Package app artifact as zip
+#        run: |
+#          echo "Packaging TheEditor.app as zip..."
+#          # Change directory into the output folder and zip the app
+#          cd output
+#          # Remove any pre-existing zip to avoid conflicts
+#          rm -f TheEditor.app.zip
+#          zip -r TheEditor.app.zip TheEditor.app
+#          ls -l TheEditor.app.zip
 
-      # 7. Create a GitHub release for the tag (using the version number)
+      # 6. Create a GitHub release for the tag (using the version number)
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -88,6 +88,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./output/TheEditor.app.zip
-          asset_name: TheEditor.app.zip
-          asset_content_type: application/zip
+          asset_path: ./output/TheEditor-${{ env.VERSION }}.dmg
+          asset_name: TheEditor-${{ env.VERSION }}.dmg
+          asset_content_type: application/dmg
