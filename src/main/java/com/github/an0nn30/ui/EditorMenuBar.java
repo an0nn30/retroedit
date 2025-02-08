@@ -44,14 +44,31 @@ public class EditorMenuBar {
         newTabItem.addActionListener(e -> editorFrame.getTabManager().addNewTab("Untitled", null));
         fileMenu.add(newTabItem);
 
-        // Close Tab
+        // Close tab
         JMenuItem closeTabItem = new JMenuItem("Close Tab");
         closeTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         closeTabItem.addActionListener(e -> {
-            int tabCount = editorFrame.getTabManager().getTabbedPane().getTabCount();
+            JTabbedPane tabbedPane = editorFrame.getTabManager().getTabbedPane();
+            int tabCount = tabbedPane.getTabCount();
+
             if (tabCount > 1) {
+                // More than one tab: simply close the current tab.
                 editorFrame.getTabManager().closeCurrentTab();
+            } else if (tabCount == 1) {
+                // Only one tab is open. Check its title.
+                String tabTitle = tabbedPane.getTitleAt(0);
+                if ("Untitled".equals(tabTitle) || tabTitle.startsWith("*Untitled")) {
+                    // Only an unsaved, untitled tab is open: don't allow closing it.
+                    JOptionPane.showMessageDialog(editorFrame,
+                            "Cannot close the only untitled tab.",
+                            "Warning",
+                            JOptionPane.WARNING_MESSAGE);
+                } else {
+                    // A file is open in the only tab: close it and open a new untitled tab.
+                    editorFrame.getTabManager().closeCurrentTab();
+                    editorFrame.getTabManager().addNewTab("Untitled", null);
+                }
             }
         });
         fileMenu.add(closeTabItem);

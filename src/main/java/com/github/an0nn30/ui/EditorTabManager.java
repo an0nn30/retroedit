@@ -48,15 +48,17 @@ public class EditorTabManager {
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         tabbedPane.addTab(title, scrollPane);
         tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
-        tabbedPane.setUI(new com.formdev.flatlaf.ui.FlatTabbedPaneUI() {
-            @Override
-            protected Insets getTabAreaInsets(int tabPlacement) {
-                Insets insets = super.getTabAreaInsets(tabPlacement);
-                // Increase the left inset by 50 pixels
-                insets.left += 65;
-                return insets;
-            }
-        });
+        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            tabbedPane.setUI(new com.formdev.flatlaf.ui.FlatTabbedPaneUI() {
+                @Override
+                protected Insets getTabAreaInsets(int tabPlacement) {
+                    Insets insets = super.getTabAreaInsets(tabPlacement);
+                    // Increase the left inset by 65 pixels for macOS
+                    insets.left += 65;
+                    return insets;
+                }
+            });
+        }
 
         updateTabTitle();
     }
@@ -126,15 +128,42 @@ public class EditorTabManager {
         RSyntaxTextArea activeTextArea = getActiveTextArea();
         if (activeTextArea == null) return;
         if (!confirmSaveIfNeeded()) return;
+
         File file = FileUtils.openFileDialog(editorFrame);
         if (file != null) {
+            // Check if the file is already open in one of the tabs.
+            for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+                Component comp = tabbedPane.getComponentAt(i);
+                if (comp instanceof JScrollPane) {
+                    RSyntaxTextArea ta = (RSyntaxTextArea) ((JScrollPane) comp).getViewport().getView();
+                    File openFile = FileUtils.getCurrentFile(ta);
+                    if (openFile != null) {
+                        try {
+                            // Compare canonical paths for robustness.
+                            if (openFile.getCanonicalPath().equals(file.getCanonicalPath())) {
+                                tabbedPane.setSelectedIndex(i);
+                                return;
+                            }
+                        } catch (IOException e) {
+                            // Fallback to absolute path comparison if canonicalization fails.
+                            if (openFile.getAbsolutePath().equals(file.getAbsolutePath())) {
+                                tabbedPane.setSelectedIndex(i);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // If not already open, proceed to open the file.
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 RSyntaxTextArea newTextArea = createTextArea();
                 newTextArea.read(reader, null);
-                // Set syntax highlighting based on file extension.
+                // Set syntax highlighting based on the file extension.
                 applySyntaxHighlighting(newTextArea, file);
 
-                // Replace the current tab if it is an untitled one;
+                // If the current tab is untitled, replace its content;
+                // otherwise, add a new tab.
                 int currentIndex = tabbedPane.getSelectedIndex();
                 String currentTitle = tabbedPane.getTitleAt(currentIndex);
                 if ("Untitled".equals(currentTitle) || currentTitle.startsWith("*Untitled")) {
@@ -143,7 +172,7 @@ public class EditorTabManager {
                 } else {
                     addNewTab(file.getName(), newTextArea);
                 }
-                // Store the current file on the text area (using a client property)
+                // Associate the file with the text area for later reference.
                 FileUtils.setCurrentFile(newTextArea, file);
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(editorFrame, "Error opening file",
