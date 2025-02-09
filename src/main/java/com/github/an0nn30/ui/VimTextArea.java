@@ -12,14 +12,16 @@ import java.awt.Font;
 public class VimTextArea extends RSyntaxTextArea {
     private VimModes mode;
     private VimShortcutManager shortcutManager;
+    // Reference to the status bar
+    private EditorStatusBar statusBar;
 
     public VimTextArea() {
         super();
-        // Start in READY (normal) mode by default.
+        // Start in NORMAL mode by default.
         mode = VimModes.NORMAL;
         setSyntaxEditingStyle("text/x-java");
         setCodeFoldingEnabled(true);
-        // In READY mode the text area is read-only.
+        // In NORMAL mode the text area is read-only.
         setEditable(false);
 
         // Set the initial caret to our custom block caret.
@@ -38,8 +40,22 @@ public class VimTextArea extends RSyntaxTextArea {
     }
 
     /**
-     * Switches the editor to the specified mode, updating its editability
-     * and caret style accordingly.
+     * Allows setting the status bar instance. Once set, the status bar will be updated
+     * whenever the Vim mode changes.
+     *
+     * @param statusBar the EditorStatusBar instance to update
+     */
+    public void setStatusBar(EditorStatusBar statusBar) {
+        this.statusBar = statusBar;
+        // Immediately update the status bar to reflect the current mode.
+        if (this.statusBar != null) {
+            this.statusBar.setVimMode(mode.toString());
+        }
+    }
+
+    /**
+     * Switches the editor to the specified mode, updating its editability,
+     * caret style, and the status bar label accordingly.
      *
      * @param newMode the new Vim mode
      */
@@ -55,7 +71,7 @@ public class VimTextArea extends RSyntaxTextArea {
             // In INSERT mode, use the standard I-beam caret.
             setCaret(new DefaultCaret());
         } else {
-            // In NORMAL (READY) or VISUAL mode, use our custom block caret.
+            // In NORMAL (or VISUAL) mode, use our custom block caret.
             setCaret(new BlockCaret());
         }
 
@@ -63,6 +79,11 @@ public class VimTextArea extends RSyntaxTextArea {
         setCaretPosition(pos);
 
         System.out.println("Switched to " + newMode + " mode.");
+
+        // Update the status bar label if available.
+        if (statusBar != null) {
+            statusBar.setVimMode(newMode.toString());
+        }
     }
 
     // --- Caret Movement Methods ---
