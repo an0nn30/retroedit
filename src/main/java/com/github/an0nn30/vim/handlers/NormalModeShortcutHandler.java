@@ -6,8 +6,11 @@ import javax.swing.text.BadLocationException;
 
 public class NormalModeShortcutHandler extends VimModeShortcutHandler {
 
-    // Used to detect a multi-key sequence ("gg").
+    // For multi-key sequence "gg" (jump to top).
     private boolean awaitingG = false;
+
+    // For collecting digits after a colon.
+    private StringBuilder commandBuffer = null;
 
     public NormalModeShortcutHandler(VimTextArea editor) {
         super(editor);
@@ -17,12 +20,47 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
     public boolean handleKeyPressed(KeyEvent e) {
         char keyChar = e.getKeyChar();
 
-        // If we are waiting for a second 'g' but receive a key that is not 'g',
-        // then clear the waiting state.
+        // If we are in command mode (after ':'), process numeric input.
+        if (commandBuffer != null) {
+            // Accept digits.
+            if (Character.isDigit(keyChar)) {
+                commandBuffer.append(keyChar);
+                e.consume();
+                return true;
+            }
+            // Execute the command when Enter is pressed.
+            else if (keyChar == KeyEvent.VK_ENTER || keyChar == '\n') {
+                executeLineJump();
+                e.consume();
+                return true;
+            }
+            // If a non-digit (other than Enter) is pressed,
+            // then if there is a number, execute the command.
+            else {
+                if (commandBuffer.length() > 0) {
+                    executeLineJump();
+                    // Let the non-digit key be processed normally.
+                } else {
+                    // No digits were entered; simply cancel.
+                    commandBuffer = null;
+                }
+                // Continue processing the current key below.
+            }
+        }
+
+        // Start command mode if ':' is pressed (and we're not already capturing a command).
+        if (commandBuffer == null && keyChar == ':') {
+            commandBuffer = new StringBuilder();
+            e.consume();
+            return true;
+        }
+
+        // If we are waiting for the second 'g' for "gg", clear the waiting flag if the key isn't 'g'.
         if (awaitingG && keyChar != 'g') {
             awaitingG = false;
         }
 
+        // Process other NORMAL-mode commands.
         switch (keyChar) {
             case 'h':
                 editor.moveLeft();
@@ -48,23 +86,47 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
             case 'B':
                 moveToPreviousWord(true);
                 return true;
-            case 'G':  // Jump to the bottom of the document.
+            case 'G':
                 moveToBottom();
                 return true;
             case 'g':
                 if (awaitingG) {
-                    // Second 'g' detected ("gg"): jump to the top of the document.
+                    // "gg": jump to the top.
                     moveToTop();
                     awaitingG = false;
                     return true;
                 } else {
-                    // First 'g': set the waiting flag and consume the event.
                     awaitingG = true;
                     return true;
                 }
             default:
                 return false;
         }
+    }
+
+    /**
+     * Parses the accumulated number and jumps the caret to the beginning of that line.
+     * Lines are 1-indexed (as in Vim), so line 1 is the top of the document.
+     */
+    private void executeLineJump() {
+        if (commandBuffer != null && commandBuffer.length() > 0) {
+            try {
+                int requestedLine = Integer.parseInt(commandBuffer.toString());
+                int lineCount = editor.getLineCount();
+                // Clamp the line number to a valid range.
+                if (requestedLine < 1) {
+                    requestedLine = 1;
+                } else if (requestedLine > lineCount) {
+                    requestedLine = lineCount;
+                }
+                // Convert 1-indexed to 0-indexed.
+                int lineStartOffset = editor.getLineStartOffset(requestedLine - 1);
+                editor.setCaretPosition(lineStartOffset);
+            } catch (BadLocationException | NumberFormatException ex) {
+                ex.printStackTrace();
+            }
+        }
+        commandBuffer = null;
     }
 
     /**
@@ -84,7 +146,6 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
 
     /**
      * Moves the caret to the beginning of the next word.
-     *
      * For big words (when bigWord is true), a word is any non-whitespace sequence.
      * For small words, an alphanumeric word is a sequence of letters, digits, or underscores,
      * while punctuation is treated as its own word.
@@ -99,10 +160,9 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
             if (pos >= docLength) {
                 return;
             }
-            // Get the text from the current position to the end of the document.
             String text = editor.getDocument().getText(pos, docLength - pos);
             int offset = 0;
-            // Skip any initial whitespace.
+            // Skip any whitespace.
             while (offset < text.length() && Character.isWhitespace(text.charAt(offset))) {
                 offset++;
             }
@@ -111,30 +171,26 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
                 return;
             }
             if (bigWord) {
-                // Big-word motion: skip over all non-whitespace characters.
                 while (offset < text.length() && !Character.isWhitespace(text.charAt(offset))) {
                     offset++;
                 }
             } else {
-                // Determine the token type of the next word.
                 char current = text.charAt(offset);
                 boolean inAlpha = Character.isLetterOrDigit(current) || current == '_';
                 if (inAlpha) {
-                    // Skip over contiguous alphanumeric (or underscore) characters.
                     while (offset < text.length() &&
                             (Character.isLetterOrDigit(text.charAt(offset)) || text.charAt(offset) == '_')) {
                         offset++;
                     }
                 } else {
-                    // For punctuation, skip over contiguous characters that are neither whitespace nor alphanumeric.
                     while (offset < text.length() &&
                             !Character.isWhitespace(text.charAt(offset)) &&
-                            !(Character.isLetterOrDigit(text.charAt(offset)) || text.charAt(offset) == '_')) {
+                            (!Character.isLetterOrDigit(text.charAt(offset)) && text.charAt(offset) != '_')) {
                         offset++;
                     }
                 }
             }
-            // Finally, skip any whitespace to land at the beginning of the next word.
+            // Skip trailing whitespace.
             while (offset < text.length() && Character.isWhitespace(text.charAt(offset))) {
                 offset++;
             }
@@ -145,8 +201,8 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
     }
 
     /**
-     * Moves the caret to the beginning of the previous word.
-     * This method traverses across line boundaries.
+     * Moves the caret to the beginning of the previous word, traversing into
+     * earlier parts of the document if necessary.
      *
      * @param bigWord if true, use whitespace as the delimiter;
      *                otherwise, consider letters/digits/underscore as word characters.
@@ -157,25 +213,19 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
             if (pos <= 0) {
                 return;
             }
-            // Get the full document text.
             String fullText = editor.getDocument().getText(0, editor.getDocument().getLength());
-            // Step one character left to handle the case when the caret is already at a word boundary.
-            pos--;
+            pos--;  // Step one character left to handle word boundaries.
             if (bigWord) {
-                // Skip backwards over any whitespace.
                 while (pos > 0 && Character.isWhitespace(fullText.charAt(pos))) {
                     pos--;
                 }
-                // Then, move backwards over non-whitespace.
                 while (pos > 0 && !Character.isWhitespace(fullText.charAt(pos - 1))) {
                     pos--;
                 }
             } else {
-                // Skip backwards over non-word characters.
                 while (pos > 0 && !isWordChar(fullText.charAt(pos))) {
                     pos--;
                 }
-                // Then, move backwards over word characters.
                 while (pos > 0 && isWordChar(fullText.charAt(pos - 1))) {
                     pos--;
                 }
@@ -188,7 +238,7 @@ public class NormalModeShortcutHandler extends VimModeShortcutHandler {
 
     /**
      * Returns true if the character is considered part of a small word
-     * (i.e. letters, digits, or underscore).
+     * (letters, digits, or underscore).
      */
     private boolean isWordChar(char c) {
         return Character.isLetterOrDigit(c) || c == '_';
