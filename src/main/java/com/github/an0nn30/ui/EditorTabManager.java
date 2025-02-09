@@ -7,6 +7,8 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
+
+import com.github.an0nn30.vim.ui.BlockCaret;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -39,7 +41,7 @@ public class EditorTabManager {
     /**
      * Adds a new tab. If no text area is supplied, a new one is created.
      */
-    public void addNewTab(String title, RSyntaxTextArea textArea) {
+    public void addNewTab(String title, VimTextArea textArea) {
         if (textArea == null) {
             textArea = createTextArea();
         }
@@ -63,8 +65,9 @@ public class EditorTabManager {
         updateTabTitle();
     }
 
-    private RSyntaxTextArea createTextArea() {
-        RSyntaxTextArea textArea = new RSyntaxTextArea();
+    private VimTextArea createTextArea() {
+//        RSyntaxTextArea textArea = new RSyntaxTextArea();
+        VimTextArea textArea = new VimTextArea();
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
         textArea.setCodeFoldingEnabled(true);
         textArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -80,6 +83,8 @@ public class EditorTabManager {
         // Optionally, set the default font from Settings.
         textArea.setFont(new Font(editorFrame.getSettings().getFontName(),
                 Font.PLAIN, editorFrame.getSettings().getFontSize()));
+
+        textArea.setCaret(new BlockCaret());
         return textArea;
     }
 
@@ -157,7 +162,7 @@ public class EditorTabManager {
 
             // If not already open, proceed to open the file.
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                RSyntaxTextArea newTextArea = createTextArea();
+                VimTextArea newTextArea = createTextArea();
                 newTextArea.read(reader, null);
                 // Set syntax highlighting based on the file extension.
                 applySyntaxHighlighting(newTextArea, file);
@@ -185,7 +190,7 @@ public class EditorTabManager {
         if (!confirmSaveIfNeeded()) return;
         if (file != null) {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                RSyntaxTextArea newTextArea = createTextArea();
+                VimTextArea newTextArea = createTextArea();
                 newTextArea.read(reader, null);
                 // Apply syntax highlighting based on file extension.
                 applySyntaxHighlighting(newTextArea, file);
