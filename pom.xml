@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.an0nn30</groupId>
     <artifactId>editor</artifactId>
-    <version>1.0.5</version>
+    <version>1.1.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -15,44 +15,17 @@
     </properties>
     <repositories>
         <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-            <name>Maven Repository Switchboard</name>
-            <url>https://repo1.maven.org/maven2</url>
-        </repository>
-        <repository>
-            <id>mvnrepo</id>
-            <url>https://mvnrepository.com/artifact</url>
+            <id>jetbrains-repo</id>
+            <url>https://mvnrepository.com/artifact/org.jetbrains.jediterm/jediterm-core</url>
         </repository>
     </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>central</id>
-            <name>Maven Plugin Repository</name>
-            <url>https://repo1.maven.org/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
 
     <dependencies>
-        <dependency>
-            <groupId>com.fifesoft</groupId>
-            <artifactId>autocomplete</artifactId>
-            <version>3.3.1</version>
-        </dependency>
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>rsyntaxtextarea</artifactId>
             <version>3.3.3</version>
         </dependency>
-
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -61,11 +34,6 @@
         <dependency>
             <groupId>com.formdev</groupId>
             <artifactId>flatlaf</artifactId>
-            <version>3.5.4</version>
-        </dependency>
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf-intellij-themes</artifactId>
             <version>3.5.4</version>
         </dependency>
         <!-- SLF4J Simple Implementation -->
@@ -78,17 +46,6 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
             <version>1.9.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/net.miginfocom.miglayout/net.miginfocom.miglayout.swing.bundle -->
-        <dependency>
-            <groupId>com.miglayout</groupId>
-            <artifactId>miglayout-swing</artifactId>
-            <version>5.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.formdev</groupId>
-            <artifactId>flatlaf-extras</artifactId>
-            <version>3.4</version>
         </dependency>
     </dependencies>
 
