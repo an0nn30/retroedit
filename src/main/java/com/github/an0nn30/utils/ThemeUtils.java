@@ -6,8 +6,9 @@ import java.io.IOException;
 
 public class ThemeUtils {
     public static void applyTheme(RSyntaxTextArea textArea, String themeName) {
+
         String themeResource = switch (themeName) {
-            case "Dark" -> "/org/fife/ui/rsyntaxtextarea/themes/dark.xml";
+            case "Dark" -> "/DarkPurple.rsyntaxarea.xml";
             case "Eclipse" -> "/org/fife/ui/rsyntaxtextarea/themes/eclipse.xml";
             case "Monokai" -> "/org/fife/ui/rsyntaxtextarea/themes/monokai.xml";
             default -> "/org/fife/ui/rsyntaxtextarea/themes/default.xml";
@@ -22,6 +23,6 @@ public class ThemeUtils {
 
     public static void applyDefaultTheme(RSyntaxTextArea textArea) {
         // For example, we choose Monokai as the default theme.
-        applyTheme(textArea, "Monokai");
+        applyTheme(textArea, "Dark");
     }
 }
