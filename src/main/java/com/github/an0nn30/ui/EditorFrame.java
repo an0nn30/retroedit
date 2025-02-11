@@ -37,7 +37,7 @@ public class EditorFrame extends JFrame {
 
         // Create UI components.
         tabManager = new EditorTabManager(this);
-        statusBar = new EditorStatusBar();
+        statusBar = new EditorStatusBar(this);
         EditorMenuBar menuBar = new EditorMenuBar(this);
 
         setJMenuBar(menuBar.getMenuBar());
