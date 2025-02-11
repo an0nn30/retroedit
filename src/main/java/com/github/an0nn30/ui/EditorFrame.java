@@ -1,5 +1,6 @@
 package com.github.an0nn30.ui;
 
+import com.formdev.flatlaf.IntelliJTheme;
 import com.formdev.flatlaf.util.SystemInfo;
 import com.github.an0nn30.settings.Settings;
 import com.github.an0nn30.settings.SettingsDialog;
@@ -15,13 +16,9 @@ public class EditorFrame extends JFrame {
     public EditorFrame() {
         super("");
 
-        System.setProperty("apple.awt.application.appearance", "system");
-        this.getRootPane().putClientProperty("apple.laf.useScreenMenuBar", true);
         this.getRootPane().putClientProperty("apple.awt.fullWindowContent", true);
         this.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);
-        this.getRootPane().putClientProperty("apple.awt.application.appearance", "system");
-        if (SystemInfo.isMacFullWindowContentSupported)
-            this.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);
+
 
 
         // Load settings from a JSON file.
@@ -33,10 +30,6 @@ public class EditorFrame extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        // Set up some Mac–specific properties if needed.
-        System.setProperty("apple.awt.application.appearance", "system");
-        getRootPane().putClientProperty("apple.laf.useScreenMenuBar", true);
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);

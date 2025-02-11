@@ -1,6 +1,7 @@
 package com.github.an0nn30;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.IntelliJTheme;
 import com.github.an0nn30.ui.EditorFrame;
 import com.github.an0nn30.ui.EditorTabManager;
 
@@ -9,7 +10,8 @@ import java.io.File;
 
 public class Main {
     public static void main(String[] args) {
-        FlatDarkLaf.setup();
+//        FlatDarkLaf.setup();
+        IntelliJTheme.setup(Main.class.getResourceAsStream("/DarkPurple.theme.json"));
         SwingUtilities.invokeLater(() -> {
             EditorFrame frame = new EditorFrame();
 
