@@ -1,6 +1,8 @@
 package com.github.an0nn30.ui;
 
 
+import com.formdev.flatlaf.IntelliJTheme;
+
 import javax.swing.*;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
@@ -11,6 +13,7 @@ public class EditorMenuBar {
     private final EditorFrame editorFrame;
 
     public EditorMenuBar(EditorFrame editorFrame) {
+        IntelliJTheme.setup(getClass().getResourceAsStream("/DarkPurple.theme.json"));
         this.editorFrame = editorFrame;
         menuBar = new JMenuBar();
         createMenus();

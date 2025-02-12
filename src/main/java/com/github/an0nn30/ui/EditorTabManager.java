@@ -1,5 +1,6 @@
 package com.github.an0nn30.ui;
 
+import com.formdev.flatlaf.IntelliJTheme;
 import com.github.an0nn30.utils.FileUtils;
 import com.github.an0nn30.utils.ThemeUtils;
 import java.awt.*;
@@ -19,6 +20,7 @@ public class EditorTabManager {
     private Map<String, String> syntaxMap;
 
     public EditorTabManager(EditorFrame frame) {
+        IntelliJTheme.setup(this.getClass().getResourceAsStream("/DarkPurple.theme.json"));
         this.editorFrame = frame;
         tabbedPane = new JTabbedPane(SwingConstants.TOP);
         initSyntaxMap();
@@ -67,7 +69,7 @@ public class EditorTabManager {
 
     private VimTextArea createTextArea() {
 //        RSyntaxTextArea textArea = new RSyntaxTextArea();
-        VimTextArea textArea = new VimTextArea();
+        VimTextArea textArea = new VimTextArea(this.editorFrame);
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
         textArea.setCodeFoldingEnabled(true);
         textArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {

@@ -5,6 +5,7 @@ import com.github.an0nn30.vim.handlers.VimShortcutManager;
 import com.github.an0nn30.vim.ui.BlockCaret;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 
+import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import java.awt.Font;
@@ -12,11 +13,14 @@ import java.awt.Font;
 public class VimTextArea extends RSyntaxTextArea {
     private VimModes mode;
     private VimShortcutManager shortcutManager;
-    // Reference to the status bar
-    private EditorStatusBar statusBar;
 
-    public VimTextArea() {
+    private final EditorFrame editor;
+
+    public VimTextArea(EditorFrame editor) {
         super();
+
+        this.editor = editor;
+
         // Start in NORMAL mode by default.
         mode = VimModes.NORMAL;
         setSyntaxEditingStyle("text/x-java");
@@ -39,19 +43,18 @@ public class VimTextArea extends RSyntaxTextArea {
         return mode;
     }
 
-    /**
-     * Allows setting the status bar instance. Once set, the status bar will be updated
-     * whenever the Vim mode changes.
-     *
-     * @param statusBar the EditorStatusBar instance to update
-     */
-    public void setStatusBar(EditorStatusBar statusBar) {
-        this.statusBar = statusBar;
-        // Immediately update the status bar to reflect the current mode.
-        if (this.statusBar != null) {
-            this.statusBar.setVimMode(mode.toString());
-        }
-    }
+//    /**
+//     * Allows setting the status bar instance. Once set, the status bar will be updated
+//     * whenever the Vim mode changes.
+//     *
+//     * @param statusBar the EditorStatusBar instance to update
+//     */
+//    public void setStatusBar() {
+//        if (this.editor.getStatusBar().getLeftPanelComponents().get("vimCommandBar") != null) {
+//            var label = (JLabel) this.editor.getStatusBar().getLeftPanelComponents().get("vimCommandBar");
+//            label.setText("");
+//        }
+//    }
 
     /**
      * Switches the editor to the specified mode, updating its editability,
@@ -79,11 +82,6 @@ public class VimTextArea extends RSyntaxTextArea {
         setCaretPosition(pos);
 
         System.out.println("Switched to " + newMode + " mode.");
-
-        // Update the status bar label if available.
-        if (statusBar != null) {
-            statusBar.setVimMode(newMode.toString());
-        }
     }
 
     // --- Caret Movement Methods ---
