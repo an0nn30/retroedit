@@ -1,5 +1,6 @@
 package com.github.an0nn30.ui;
 
+import com.formdev.flatlaf.IntelliJTheme;
 import com.github.an0nn30.utils.FileUtils;
 import com.github.an0nn30.utils.ThemeUtils;
 import java.awt.*;
@@ -17,6 +18,7 @@ public class EditorTabManager {
     private Map<String, String> syntaxMap;
 
     public EditorTabManager(EditorFrame frame) {
+        IntelliJTheme.setup(this.getClass().getResourceAsStream("/DarkPurple.theme.json"));
         this.editorFrame = frame;
         tabbedPane = new JTabbedPane(SwingConstants.TOP);
         initSyntaxMap();

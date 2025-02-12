@@ -1,11 +1,14 @@
 package com.github.an0nn30.ui;
 
+import com.formdev.flatlaf.IntelliJTheme;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class RightToolbar extends JPanel {
     public RightToolbar() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        IntelliJTheme.setup(RightToolbar.class.getResourceAsStream("/DarkPurple.theme.json"));
         add(createRunButton());
 
     }

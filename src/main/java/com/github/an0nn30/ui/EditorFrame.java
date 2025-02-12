@@ -1,12 +1,10 @@
 package com.github.an0nn30.ui;
 
-import com.formdev.flatlaf.IntelliJTheme;
-import com.formdev.flatlaf.util.SystemInfo;
 import com.github.an0nn30.settings.Settings;
 import com.github.an0nn30.settings.SettingsDialog;
+import com.formdev.flatlaf.FlatDarkLaf;
 import javax.swing.*;
 import java.awt.*;
-import com.formdev.flatlaf.FlatDarkLaf;
 
 public class EditorFrame extends JFrame {
     private final EditorTabManager tabManager;
@@ -18,8 +16,6 @@ public class EditorFrame extends JFrame {
 
         this.getRootPane().putClientProperty("apple.awt.fullWindowContent", true);
         this.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);
-
-
 
         // Load settings from a JSON file.
         settings = Settings.loadSettings();
@@ -41,6 +37,7 @@ public class EditorFrame extends JFrame {
         EditorMenuBar menuBar = new EditorMenuBar(this);
 
         setJMenuBar(menuBar.getMenuBar());
+
         add(tabManager.getTabbedPane(), BorderLayout.CENTER);
         add(statusBar.getPanel(), BorderLayout.SOUTH);
 

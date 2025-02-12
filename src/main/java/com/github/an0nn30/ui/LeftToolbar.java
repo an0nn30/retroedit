@@ -1,12 +1,15 @@
 package com.github.an0nn30.ui;
 
+import com.formdev.flatlaf.IntelliJTheme;
+
 import javax.swing.*;
 import java.awt.*;
 
 public class LeftToolbar extends JToolBar {
     public LeftToolbar() {
         super(JToolBar.VERTICAL);
-        add(createRunButton());
+        IntelliJTheme.setup(LeftToolbar.class.getResourceAsStream("/DarkPurple.theme.json"));
+//        add(createRunButton());
     }
 
     public JButton createRunButton() {
