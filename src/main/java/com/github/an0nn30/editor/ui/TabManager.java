@@ -18,6 +18,8 @@ public class TabManager extends JTabbedPane {
     public TabManager(Editor editor) {
         super(SwingConstants.TOP);
         this.editor = editor;
+        EventBus.subscribe(EventType.TAB_UPDATED.name(), event -> setTitleAt(getSelectedIndex(), event.data().toString()));
+
     }
 
     // Creates a new TextArea and applies settings.
@@ -37,6 +39,7 @@ public class TabManager extends JTabbedPane {
         Font font = textArea.getFont();
         textArea.setFont(new Font(font.getName(), font.getStyle(), Settings.getFontSize()));
         return textArea;
+
     }
 
     public TextArea getActiveTextArea() {
