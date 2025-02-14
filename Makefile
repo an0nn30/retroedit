@@ -7,7 +7,7 @@ VERSION := $(shell xmllint --xpath "/*[local-name()='project']/*[local-name()='v
 # Variables
 APP_NAME = TheEditor
 MAIN_JAR = editor-$(VERSION)-jar-with-dependencies.jar
-MAIN_CLASS = com.github.an0nn30.Main
+MAIN_CLASS = com.github.an0nn30.editor.Main
 ICON_PATH = src/main/resources/the-editor.icns
 APP_VERSION = $(VERSION)
 VENDOR = "An0nn30"
