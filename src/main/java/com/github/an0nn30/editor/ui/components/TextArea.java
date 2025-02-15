@@ -1,9 +1,8 @@
 package com.github.an0nn30.editor.ui.components;
 
-import com.github.an0nn30.editor.event.Event;
+import com.github.an0nn30.editor.event.EventRecord;
 import com.github.an0nn30.editor.event.EventBus;
 import com.github.an0nn30.editor.event.EventType;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
@@ -30,8 +29,8 @@ public class TextArea extends RSyntaxTextArea {
             e.printStackTrace();
         }
         // Subscribe only to syntax highlighting updates.
-        EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), (Event<Object> event) -> {
-            String fileType = (String) event.data();
+        EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), (EventRecord<Object> eventRecord) -> {
+            String fileType = (String) eventRecord.data();
             setSyntaxEditingStyle(fileType);
         });
     }

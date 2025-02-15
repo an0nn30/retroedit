@@ -8,6 +8,7 @@ import com.github.an0nn30.editor.ui.components.Panel;
 import com.github.an0nn30.editor.ui.components.TextArea;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -84,6 +85,10 @@ public class MainToolbar extends Panel {
         toolBar.add(runButton);
         toolBar.add(debugButton);
         toolBar.add(stopButton);
+
+//        JPanel panel = new JPanel();
+//        panel.setLayout(new FlowLayout(FlowLayout.LEFT, 70, 3));
+//        panel.add(toolBar);
 
         return toolBar;
     }

@@ -2,10 +2,13 @@ package com.github.an0nn30.editor.ui;
 
 import com.github.an0nn30.editor.event.EventBus;
 import com.github.an0nn30.editor.event.EventType;
+import com.github.an0nn30.editor.logging.Logger;
 import com.github.an0nn30.editor.settings.Constants;
+import com.github.an0nn30.editor.settings.Settings;
 import com.github.an0nn30.editor.ui.components.TextArea;
 import com.github.an0nn30.editor.ui.utils.FileUtils;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 import javax.swing.*;
 import java.awt.*;
@@ -25,6 +28,18 @@ public class TabManager extends JTabbedPane {
     // Creates a new TextArea and applies settings.
     private TextArea createTextArea() {
         TextArea textArea = new TextArea(editor);
+        Theme theme = null;
+        try {
+            if (Settings.getInstance().getInterfaceTheme().equalsIgnoreCase("light")) {
+                theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));
+                theme.apply(textArea);
+            } else {
+                theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/monokai.xml"));
+                theme.apply(textArea);
+            }
+        } catch (IOException e) {
+            Logger.getInstance().error(getClass(), "Error loading theme: " + e.getMessage());
+        }
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
         textArea.setCodeFoldingEnabled(true);
         textArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -37,7 +52,7 @@ public class TabManager extends JTabbedPane {
         });
         // Apply the font size from Settings.
         Font font = textArea.getFont();
-        textArea.setFont(new Font(font.getName(), font.getStyle(), Settings.getFontSize()));
+        textArea.setFont(new Font(font.getName(), font.getStyle(), Settings.getInstance().getEditorFontSize()));
         return textArea;
 
     }
@@ -69,6 +84,7 @@ public class TabManager extends JTabbedPane {
         if (!confirmSaveIfNeeded()) return;
         if (checkAndSelectIfFileAlreadyOpen(file)) return;
         openFileInNewTab(file);
+        this.getActiveTextArea().requestFocus();
     }
 
     // Check if the file is already open in any tab.
@@ -167,7 +183,7 @@ public class TabManager extends JTabbedPane {
             Font font = textArea.getFont();
             int newSize = Math.max(font.getSize() + change, 8);
             textArea.setFont(new Font(font.getName(), font.getStyle(), newSize));
-            Settings.setFontSize(newSize);
+            Settings.getInstance().setEditorFontSize(newSize);
         }
     }
 

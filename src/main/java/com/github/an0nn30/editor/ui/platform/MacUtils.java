@@ -11,9 +11,11 @@ public class MacUtils {
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
             frame.getRootPane().putClientProperty("apple.laf.useScreenMenuBar", true);
             frame.getRootPane().putClientProperty("apple.awt.application.name", "Editor");
-//            frame.getRootPane().putClientProperty("apple.awt.fullWindowContent", true);
-//            frame.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);
+            frame.getRootPane().putClientProperty("apple.awt.fullWindowContent", true);
+            frame.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);
+            //rootPane.putClientProperty( FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING, FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_MEDIUM );
 
+//            frame.setTitle("");
         }
 
     }

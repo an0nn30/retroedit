@@ -1,6 +1,8 @@
 package com.github.an0nn30.editor.ui;
 
 import com.github.an0nn30.editor.FileManagerUtil;
+import com.github.an0nn30.editor.jforms.Settings;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -68,6 +70,16 @@ public class MenuBar {
             }
         });
         fileMenu.add(closeTabItem);
+
+        JMenuItem settingsTabItem = new JMenuItem("Settings");
+        settingsTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        settingsTabItem.addActionListener(e -> {
+            Settings dialog = new Settings(editor);
+            dialog.pack();
+            dialog.setVisible(true);
+        });
+        fileMenu.add(settingsTabItem);
 
         // Increase Font Size
         JMenuItem increaseFontSize = new JMenuItem("Increase Font Size");

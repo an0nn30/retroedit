@@ -1,11 +1,11 @@
 package com.github.an0nn30.editor.ui;
 
+import com.github.an0nn30.editor.event.EventRecord;
 import com.github.an0nn30.editor.settings.Constants;
-import com.github.an0nn30.editor.event.Event;
 import com.github.an0nn30.editor.event.EventBus;
 import com.github.an0nn30.editor.event.EventType;
 import com.github.an0nn30.editor.ui.components.Panel;
-import com.github.an0nn30.editor.ui.components.Panel.PanelPosition;
+
 import javax.swing.*;
 import java.util.Map;
 
@@ -14,6 +14,9 @@ public class StatusPanel extends Panel {
     public StatusPanel() {
         super();
         addComponent("fileTypeComboBox", createFileTypeComboBox(), PanelPosition.RIGHT);
+
+
+//        EventBus.subscribe(EventType.THEME_CHANGED.name(), (Event<Object> event) -> updateTheme(event));
     }
 
     private JComboBox<String> createFileTypeComboBox() {
@@ -26,10 +29,10 @@ public class StatusPanel extends Panel {
                 Constants.supportedFileTypes.get(comboBox.getSelectedItem()), comboBox));
 
         // Subscribe to syntax highlight events (if coming from other components) to update the combo box.
-        EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), (Event<Object> event) -> {
-            if (!event.source().equals(comboBox)) {
+        EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), (EventRecord<Object> eventRecord) -> {
+            if (!eventRecord.source().equals(comboBox)) {
                 for (Map.Entry<String, String> entry : Constants.supportedFileTypes.entrySet()) {
-                    if (entry.getValue().equals(event.data())) {
+                    if (entry.getValue().equals(eventRecord.data())) {
                         comboBox.setSelectedItem(entry.getKey());
                     }
                 }
