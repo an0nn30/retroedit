@@ -42,6 +42,7 @@ public class TabManager extends JTabbedPane {
         }
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
         textArea.setCodeFoldingEnabled(true);
+        textArea.initFontSizeAndFamily();
         textArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) { markModified(); }

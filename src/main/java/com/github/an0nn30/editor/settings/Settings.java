@@ -1,53 +1,27 @@
 package com.github.an0nn30.editor.settings;
 
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 import com.github.an0nn30.editor.event.EventBus;
 import com.github.an0nn30.editor.event.EventType;
 import com.google.gson.*;
-import lombok.Getter;
-import lombok.Setter;
+
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Settings {
     private static Settings settings;
-
-
-    @Getter
-    @Setter
     private String interfaceTheme = "Light"; // you can adjust the default theme
-
-//    @Getter
-//    @Setter
-//    private String editorColorScheme = "monokai";
-
-    @Getter
-    @Setter
     private int editorFontSize = 12;
-
-    @Setter
-    @Getter
     private int interfaceFontSize = 12;
-
-    @Setter
-    @Getter
     private String editorFontFamily = "Monospaced";
-
-    @Setter
-    @Getter
     private String interfaceFontFamily = "Monospaced";
-
-    // In Settings.java, add:
-    @Getter
-    @Setter
     private String logLevel = "DEBUG";
-
-    private static final File SETTINGS_FILE = new File("settings.json");
+    private static final File SETTINGS_FILE = getSettingsFilePath("settings.json").toFile();
 
     /**
      * Initializes the Settings instance by loading from settings.json.
@@ -89,12 +63,6 @@ public class Settings {
             settings.interfaceFontFamily = defaults.interfaceFontFamily;
             updated = true;
         }
-//        if (settings.editorColorScheme == null) {
-//            settings.editorColorScheme = defaults.editorColorScheme;
-//            updated = true;
-//        }
-        // Note: Primitive types (like int) cannot be null so they keep their default values.
-
         if (updated) {
             saveSettings(gson);
         }
@@ -142,11 +110,6 @@ public class Settings {
                 .setPrettyPrinting()
                 .create();
     }
-
-    // === Example of custom setters that trigger saving ===
-    // If you want every change to be immediately saved, consider replacing Lombok's
-    // generated setters with these custom implementations.
-
     public void setInterfaceTheme(String theme) {
         if (!this.interfaceTheme.equalsIgnoreCase(theme)) {
             EventBus.publish(EventType.THEME_CHANGED.name(), theme, null);
@@ -154,18 +117,9 @@ public class Settings {
         this.interfaceTheme = theme;
         saveSettings();
     }
-
-//    public void setEditorColorScheme(String theme) {
-//        if (!this.editorColorScheme.equalsIgnoreCase(theme)) {
-//            EventBus.publish(EventType.EDITOR_THEME_CHANGED.name(), theme, null);
-//        }
-//        this.editorFontFamily = theme;
-//        saveSettings();
-//    }
-
     public void setEditorFontSize(int editorFontSize) {
         if (this.editorFontSize != editorFontSize) {
-            EventBus.publish(EventType.FONT_SIZE_CHANGED.name(), this.editorFontSize, null);
+            EventBus.publish(EventType.FONT_SIZE_CHANGED.name(), editorFontSize, null);
         }
         this.editorFontSize = editorFontSize;
         saveSettings();
@@ -173,32 +127,66 @@ public class Settings {
 
     public void setEditorFontFamily(String editorFontFamily) {
         if (!this.editorFontFamily.equalsIgnoreCase(editorFontFamily)) {
-            EventBus.publish(EventType.FONT_FAMILY_CHANGED.name(), this.editorFontFamily, null);
+            EventBus.publish(EventType.FONT_FAMILY_CHANGED.name(), editorFontFamily, null);
         }
         this.editorFontFamily = editorFontFamily;
         saveSettings();
     }
 
-
-    public void setInterfaceFontSize(int interfaceFontSize) {
-        this.interfaceFontSize = interfaceFontSize;
-        saveSettings();
+    public static Settings getSettings() {
+        return settings;
     }
 
-
-    public void setInterfaceFontFamily(String interfaceFontFamily) {
-        this.interfaceFontFamily = interfaceFontFamily;
-        saveSettings();
+    public String getInterfaceTheme() {
+        return interfaceTheme;
     }
 
-    ///  Utility Functions for Themes
+    public int getEditorFontSize() {
+        return editorFontSize;
+    }
 
-//    public void setTheme(JComponent component) {
-//        if (component != null) {
-//            component.setBackground(getEditorThemeColor());
-//            for (Component child : component.getComponents()) {
-//                child.setBackground(getEditorThemeColor());
-//            }
-//        }
-//    }
+    public int getInterfaceFontSize() {
+        return interfaceFontSize;
+    }
+
+    public String getEditorFontFamily() {
+        return editorFontFamily;
+    }
+
+    public String getInterfaceFontFamily() {
+        return interfaceFontFamily;
+    }
+
+    public String getLogLevel() {
+        return logLevel;
+    }
+
+    public static Path getSettingsFilePath(String fileName) {
+        String os = System.getProperty("os.name").toLowerCase();
+        Path configDir;
+
+        if (os.contains("win")) {
+            String appData = System.getenv("APPDATA");
+            // Fallback in case APPDATA is not set.
+            if (appData == null) {
+                appData = System.getProperty("user.home");
+            }
+            configDir = Paths.get(appData, "TheEditor");
+        } else if (os.contains("mac")) {
+            String home = System.getProperty("user.home");
+            configDir = Paths.get(home, "Library", "Application Support", "com.github.an0nn30.the-editor","TheEditor");
+        } else { // Assume Linux or Unix-like system
+            String home = System.getProperty("user.home");
+            configDir = Paths.get(home, ".config", "TheEditor");
+        }
+
+        // Ensure the directory exists (creates if necessary)
+        try {
+            Files.createDirectories(configDir);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return configDir.resolve(fileName);
+    }
 }

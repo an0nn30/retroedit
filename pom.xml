@@ -6,19 +6,19 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.an0nn30</groupId>
     <artifactId>editor</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <main.class>com.github.an0nn30.editor.Main</main.class>
     </properties>
-    <repositories>
-        <repository>
-            <id>jetbrains-repo</id>
-            <url>https://mvnrepository.com/artifact/org.jetbrains.jediterm/jediterm-core</url>
-        </repository>
-    </repositories>
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>jetbrains-repo</id>-->
+<!--            <url>https://mvnrepository.com/artifact/org.jetbrains.jediterm/jediterm-core</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
 
     <dependencies>
         <dependency>
@@ -57,6 +57,13 @@
             <artifactId>kotlin-stdlib</artifactId>
             <version>1.9.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.intellij/forms_rt -->
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>forms_rt</artifactId>
+            <version>7.0.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -79,21 +86,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <!-- Build an executable JAR -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.github.an0nn30.editor.Main</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -3,6 +3,8 @@ package com.github.an0nn30.editor.ui.components;
 import com.github.an0nn30.editor.event.EventRecord;
 import com.github.an0nn30.editor.event.EventBus;
 import com.github.an0nn30.editor.event.EventType;
+import com.github.an0nn30.editor.logging.Logger;
+import com.github.an0nn30.editor.settings.Settings;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
@@ -28,10 +30,21 @@ public class TextArea extends RSyntaxTextArea {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        initFontSizeAndFamily();
         // Subscribe only to syntax highlighting updates.
         EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), (EventRecord<Object> eventRecord) -> {
             String fileType = (String) eventRecord.data();
             setSyntaxEditingStyle(fileType);
+        });
+        EventBus.subscribe(EventType.FONT_FAMILY_CHANGED.name(), (EventRecord<Object> eventRecord) -> {
+            String fontFamily = (String) eventRecord.data();
+            Logger.getInstance().info(TextArea.class, "Font family changed to: " + fontFamily);
+            setFont(new java.awt.Font(fontFamily, java.awt.Font.PLAIN, getFont().getSize()));
+        });
+        EventBus.subscribe(EventType.FONT_SIZE_CHANGED.name(), (EventRecord<Object> eventRecord) -> {
+            int fontSize = (int) eventRecord.data();
+            Logger.getInstance().info(TextArea.class, "Font size changed to: " + fontSize);
+            setFont(new java.awt.Font(getFont().getFamily(), java.awt.Font.PLAIN, fontSize));
         });
     }
 
@@ -43,6 +56,11 @@ public class TextArea extends RSyntaxTextArea {
         syntaxMap.put("cpp", SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
         syntaxMap.put("json", SyntaxConstants.SYNTAX_STYLE_JSON);
         syntaxMap.put("go", SyntaxConstants.SYNTAX_STYLE_GO);
+    }
+
+    public void initFontSizeAndFamily() {
+        Logger.getInstance().info(TextArea.class, "Settings font size and family: " + Settings.getInstance().getEditorFontSize() + " " + Settings.getInstance().getEditorFontFamily());
+        setFont(new java.awt.Font(Settings.getInstance().getEditorFontFamily(), java.awt.Font.PLAIN, Settings.getInstance().getEditorFontSize()));
     }
 
     public Map<String, String> getSyntaxMap() {
