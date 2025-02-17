@@ -6,6 +6,7 @@ import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventType;
 import com.github.an0nn30.retroedit.logging.Logger;
 import com.github.an0nn30.retroedit.settings.Settings;
+import com.github.an0nn30.retroedit.ui.components.DirectoryTree;
 import com.github.an0nn30.retroedit.ui.components.Terminal;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
 import com.github.an0nn30.retroedit.ui.platform.MacUtils;
@@ -42,10 +43,19 @@ public class Editor extends JFrame {
         splitPane = new SplitPane(tabManager, Terminal.createTerminalWidget(this));
         splitPane.setResizeWeight(1.0);
 
+        JTree projectTree = new JTree();
+        DirectoryTree directoryTree = new DirectoryTree(".", this);
+        JScrollPane treeScrollPane = new JScrollPane(directoryTree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        JSplitPane projectEditorSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, splitPane);
+        projectEditorSplit.setDividerLocation(200);
+        projectEditorSplit.setResizeWeight(0.3);
+        projectEditorSplit.setOneTouchExpandable(true);
+        projectEditorSplit.setContinuousLayout(true);
+
         add(new StatusPanel(), BorderLayout.CENTER);
 
         add(mainToolbar, BorderLayout.NORTH);
-        add(splitPane, BorderLayout.CENTER);
+        add(projectEditorSplit, BorderLayout.CENTER);
         add(statusPanel, BorderLayout.SOUTH);
 
         // Start with one untitled tab.
