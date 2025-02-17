@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 
 public class Settings {
     private static Settings settings;
-    private String interfaceTheme = "Light"; // you can adjust the default theme
+    private String interfaceTheme = "retro"; // you can adjust the default theme
     private int editorFontSize = 12;
     private int interfaceFontSize = 12;
     private String editorFontFamily = "Monospaced";
@@ -137,12 +137,8 @@ public class Settings {
         return settings;
     }
 
-    public String getInterfaceTheme() {
-        if (isEnableClassicTheme()) {
-            return "retro";
-        } else {
-            return interfaceTheme;
-        }
+    public String  getInterfaceTheme() {
+        return interfaceTheme;
     }
 
     public int getEditorFontSize() {
@@ -185,13 +181,13 @@ public class Settings {
             if (appData == null) {
                 appData = System.getProperty("user.home");
             }
-            configDir = Paths.get(appData, "TheEditor");
+            configDir = Paths.get(appData, "retroedit");
         } else if (os.contains("mac")) {
             String home = System.getProperty("user.home");
-            configDir = Paths.get(home, "Library", "Application Support", "com.github.an0nn30.the-editor","TheEditor");
+            configDir = Paths.get(home, "Library", "Application Support", "com.github.an0nn30.retroedit","retroedit");
         } else { // Assume Linux or Unix-like system
             String home = System.getProperty("user.home");
-            configDir = Paths.get(home, ".config", "TheEditor");
+            configDir = Paths.get(home, ".config", "r");
         }
 
         // Ensure the directory exists (creates if necessary)

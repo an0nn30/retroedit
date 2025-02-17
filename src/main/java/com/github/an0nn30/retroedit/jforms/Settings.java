@@ -41,6 +41,11 @@ public class Settings extends JDialog {
             }
         });
 
+        if (com.github.an0nn30.retroedit.settings.Settings.getInstance().getInterfaceTheme().equals("retro")) {
+            setUndecorated(true);
+            getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+
+        }
 
 
         colorThemeComboBox.addItem("Light");
