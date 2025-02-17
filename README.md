@@ -1,4 +1,5 @@
 # Retro Edit
+![alt text](https://github.com/an0nn30/the-editor/blob/3-feat-file-project-view/screenshot.png?raw=true)
 
 ### What is it?
 Retro edit aims to be a feature-complete text editor written entirely in Java/Swing. It started out as a project that I was dabbling in out of bordom and wanting to make something, and turned into an editor that is exactly what I want in an editor. 
