@@ -8,7 +8,7 @@ VERSION := $(shell xmllint --xpath "/*[local-name()='project']/*[local-name()='v
 APP_NAME = RetroEdit
 MAIN_JAR = retroedit-$(VERSION)-jar-with-dependencies.jar
 MAIN_CLASS = com.github.an0nn30.retroedit.Main
-ICON_PATH_MAC = src/main/resources/retro2.icns
+ICON_PATH_MAC = src/main/resources/retro_edit_mac_icns.icns
 ICON_PATH_WIN= src/main/resources/retro.ico
 APP_VERSION = $(VERSION)
 VENDOR = "An0nn30"
