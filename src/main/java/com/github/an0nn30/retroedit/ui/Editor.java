@@ -21,6 +21,7 @@ public class Editor extends JFrame {
     private StatusPanel statusPanel;
     private SplitPane splitPane;
     private final MacUtils macUtils;
+    private DirectoryTree directoryTree;
 
     public Editor() {
         super("Retro Edit");
@@ -44,7 +45,7 @@ public class Editor extends JFrame {
         splitPane.setResizeWeight(1.0);
 
         JTree projectTree = new JTree();
-        DirectoryTree directoryTree = new DirectoryTree(".", this);
+        this.directoryTree = new DirectoryTree(".", this);
         JScrollPane treeScrollPane = new JScrollPane(directoryTree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         JSplitPane projectEditorSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, splitPane);
         projectEditorSplit.setDividerLocation(200);
@@ -126,5 +127,9 @@ public class Editor extends JFrame {
 
     public SplitPane getSplitPane() {
         return splitPane;
+    }
+
+    public DirectoryTree getDirectoryTree() {
+        return directoryTree;
     }
 }

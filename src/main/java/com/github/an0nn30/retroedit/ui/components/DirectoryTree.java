@@ -47,7 +47,12 @@ public class DirectoryTree extends JTree {
         treeModel.setRoot(rootNode);
     }
 
-    private void loadDirectory(DefaultMutableTreeNode node, File directory) {
+    public void setRootDirectory(File rootDirectory) {
+        this.rootDirectory = rootDirectory;
+        refresh();
+    }
+
+    public void loadDirectory(DefaultMutableTreeNode node, File directory) {
         if (!directory.isDirectory()) return;
 
         File[] files = directory.listFiles();

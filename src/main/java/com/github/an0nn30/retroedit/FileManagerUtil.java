@@ -6,6 +6,7 @@ import com.github.an0nn30.retroedit.ui.Editor;
 import com.github.an0nn30.retroedit.ui.utils.FileUtils;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 
 public class FileManagerUtil {
@@ -14,9 +15,16 @@ public class FileManagerUtil {
 
         if (Settings.getInstance().getInterfaceTheme().equalsIgnoreCase("retro")) {
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
             int result = fileChooser.showOpenDialog(editor);
             if (result == JFileChooser.APPROVE_OPTION) {
-                editor.getTabManager().openFile(fileChooser.getSelectedFile());
+                File file = fileChooser.getSelectedFile();
+                if (file.isDirectory()) {
+                    editor.getDirectoryTree().setRootDirectory(file);
+                    System.out.println("directory");
+                } else {
+                    editor.getTabManager().openFile(fileChooser.getSelectedFile());
+                }
             }
         } else {
             File file = FileUtils.openFileDialog(editor);
