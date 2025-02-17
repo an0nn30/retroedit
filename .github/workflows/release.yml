@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: '23'
+          java-version: "23"
           cache: maven
 
       # 3. Extract version from pom.xml
@@ -57,17 +57,6 @@ jobs:
       - name: Build and Release
         run: make dmg
 
-#      # 6. Package the generated .app directory as a zip file for release
-#      - name: Package app artifact as zip
-#        run: |
-#          echo "Packaging TheEditor.app as zip..."
-#          # Change directory into the output folder and zip the app
-#          cd output
-#          # Remove any pre-existing zip to avoid conflicts
-#          rm -f TheEditor.app.zip
-#          zip -r TheEditor.app.zip TheEditor.app
-#          ls -l TheEditor.app.zip
-
       # 6. Create a GitHub release for the tag (using the version number)
       - name: Create GitHub Release
         id: create_release
@@ -88,6 +77,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./output/TheEditor-${{ env.VERSION }}.dmg
-          asset_name: TheEditor-${{ env.VERSION }}.dmg
+          asset_path: ./output/retroedit-${{ env.VERSION }}.dmg
+          asset_name: retroedit-${{ env.VERSION }}.dmg
           asset_content_type: application/x-apple-diskimage
+
