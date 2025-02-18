@@ -3,6 +3,8 @@ package com.github.an0nn30.retroedit.ui;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.an0nn30.retroedit.FileManagerUtil;
+import com.github.an0nn30.retroedit.logging.Logger;
+import com.github.an0nn30.retroedit.ui.actions.FindDialogAction;
 import com.github.an0nn30.retroedit.ui.components.Button;
 import com.github.an0nn30.retroedit.ui.components.Panel;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
@@ -24,10 +26,6 @@ public class MainToolbar extends Panel {
 
         addComponent(initToolBar(), PanelPosition.LEFT);
 
-        // A search toolbar on the right (for future expansion)
-        JToolBar searchToolbar = new JToolBar();
-        searchToolbar.add(new JButton(new FlatSVGIcon("icons/search.svg")));
-        addComponent("searchToolbar", searchToolbar, PanelPosition.RIGHT);
     }
 
     private JToolBar initToolBar() {
@@ -72,6 +70,11 @@ public class MainToolbar extends Panel {
         JButton stopButton = new JButton(new FlatSVGIcon("icons/suspend.svg"));
         stopButton.setEnabled(false);
 
+        JButton toggleTerminal = new JButton(new FlatSVGIcon("icons/terminal.svg"));
+        toggleTerminal.addActionListener(e -> {
+            editor.toggleTerminal();
+        });
+
 
         toolBar.add(openButton);
         toolBar.add(saveButton);
@@ -85,7 +88,7 @@ public class MainToolbar extends Panel {
         toolBar.add(runButton);
         toolBar.add(debugButton);
         toolBar.add(stopButton);
-
+        toolBar.add(toggleTerminal);
 
         return toolBar;
     }

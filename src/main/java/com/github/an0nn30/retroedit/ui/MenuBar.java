@@ -2,6 +2,9 @@ package com.github.an0nn30.retroedit.ui;
 
 import com.github.an0nn30.retroedit.FileManagerUtil;
 import com.github.an0nn30.retroedit.jforms.Settings;
+import com.github.an0nn30.retroedit.ui.actions.FindDialogAction;
+import com.github.an0nn30.retroedit.ui.actions.GoToLineAction;
+import com.github.an0nn30.retroedit.ui.actions.ReplaceDialogAction;
 
 
 import javax.swing.*;
@@ -27,6 +30,7 @@ public class MenuBar {
         }
         JMenu fileMenu = new JMenu("File");
         JMenu viewMenu = new JMenu("View");
+        JMenu editMenu = new JMenu("Edit");
 
         // Open
         JMenuItem openItem = new JMenuItem("Open");
@@ -54,10 +58,10 @@ public class MenuBar {
         closeTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         closeTabItem.addActionListener(e -> {
-            JTabbedPane tabbedPane = editor.getTabManager();
+            TabManager tabbedPane = editor.getTabManager();
             int tabCount = tabbedPane.getTabCount();
             if (tabCount > 1) {
-                ((TabManager) tabbedPane).closeCurrentTab();
+                tabbedPane.closeCurrentTab();
             } else if (tabCount == 1) {
                 String tabTitle = tabbedPane.getTitleAt(0);
                 if ("Untitled".equals(tabTitle) || tabTitle.startsWith("*Untitled")) {
@@ -66,8 +70,8 @@ public class MenuBar {
                             "Warning",
                             JOptionPane.WARNING_MESSAGE);
                 } else {
-                    ((TabManager) tabbedPane).closeCurrentTab();
-                    ((TabManager) tabbedPane).addNewTab("Untitled", null);
+                    tabbedPane.closeCurrentTab();
+                    tabbedPane.addNewTab("Untitled", null);
                 }
             }
         });
@@ -131,8 +135,15 @@ public class MenuBar {
         nextTab.addActionListener(e -> editor.getTabManager().nextTab());
         viewMenu.add(nextTab);
 
+        editMenu.add(new JMenuItem(new FindDialogAction(editor)));
+        editMenu.add(new JMenuItem(new ReplaceDialogAction(editor)));
+        editMenu.add(new JMenuItem(new GoToLineAction(editor)));
+
+
+
         menuBar.add(fileMenu);
         menuBar.add(viewMenu);
+        menuBar.add(editMenu);
     }
 
     public JMenuBar getMenuBar() {
