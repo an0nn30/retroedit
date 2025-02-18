@@ -66,7 +66,7 @@ public class Editor extends JFrame {
         setJMenuBar(new MenuBar(this).getMenuBar());
 
         // Directory tree for the project.
-        directoryTree = new DirectoryTree(".", this);
+        directoryTree = new DirectoryTree(this);
     }
 
     /**
@@ -78,6 +78,7 @@ public class Editor extends JFrame {
                 JSplitPane.VERTICAL_SPLIT,
                 tabManager,
                 terminal
+//                new JPanel()
         );
         // With resize weight set to 1.0, the top component (tabManager) gets nearly all extra space.
         editorTerminalSplit.setResizeWeight(1.0);
