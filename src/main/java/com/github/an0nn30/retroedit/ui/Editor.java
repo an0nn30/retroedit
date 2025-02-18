@@ -28,93 +28,131 @@ public class Editor extends JFrame {
 
         macUtils = new MacUtils();
         setupTheme();
+        initializeFrame();
+        initializeComponents();
+        layoutComponents();
+        registerEventSubscriptions();
+        startEditor();
+    }
 
-
-
+    /**
+     * Basic frame setup.
+     */
+    private void initializeFrame() {
         setSize(700, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+    }
 
-        // Create top-level components with this Editor as reference.
+    /**
+     * Initialize all the components used in the Editor.
+     */
+    private void initializeComponents() {
+        // Top-level components
         mainToolbar = new MainToolbar(this);
         tabManager = new TabManager(this);
         statusPanel = new StatusPanel();
 
+        // Set up the menu bar.
         setJMenuBar(new MenuBar(this).getMenuBar());
 
+        // Main split pane with editor and terminal.
         splitPane = new SplitPane(tabManager, Terminal.createTerminalWidget(this));
         splitPane.setResizeWeight(1.0);
 
-        JTree projectTree = new JTree();
-        this.directoryTree = new DirectoryTree(".", this);
-        JScrollPane treeScrollPane = new JScrollPane(directoryTree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        JSplitPane projectEditorSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, splitPane);
+        // Directory tree for the project.
+        directoryTree = new DirectoryTree(".", this);
+    }
+
+    /**
+     * Layout all components within the frame.
+     */
+    private void layoutComponents() {
+        // Wrap the directory tree in a scroll pane.
+        JScrollPane treeScrollPane = new JScrollPane(
+                directoryTree,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        );
+
+        // Split pane dividing the project tree and the main editor/terminal pane.
+        JSplitPane projectEditorSplit = new JSplitPane(
+                JSplitPane.HORIZONTAL_SPLIT,
+                treeScrollPane,
+                splitPane
+        );
         projectEditorSplit.setDividerLocation(200);
         projectEditorSplit.setResizeWeight(0.3);
         projectEditorSplit.setOneTouchExpandable(true);
         projectEditorSplit.setContinuousLayout(true);
 
-        add(new StatusPanel(), BorderLayout.CENTER);
-
+        // Lay out the frame using BorderLayout.
+        setLayout(new BorderLayout());
         add(mainToolbar, BorderLayout.NORTH);
         add(projectEditorSplit, BorderLayout.CENTER);
         add(statusPanel, BorderLayout.SOUTH);
+    }
 
-        // Start with one untitled tab.
-        tabManager.addNewTab("Untitled", new TextArea(this));
-
-        updateInterfaceTheme(null);
+    /**
+     * Subscribe to events that affect the UI.
+     */
+    private void registerEventSubscriptions() {
         EventBus.subscribe(EventType.TAB_UPDATED.name(), (EventRecord<Object> eventRecord) -> {
-            String title = eventRecord.data().toString();
-            setTitle(title);
+            setTitle(eventRecord.data().toString());
         });
-        EventBus.subscribe(EventType.THEME_CHANGED.name(),
-                (EventRecord<Object> eventRecord) -> updateInterfaceTheme(eventRecord));
+        EventBus.subscribe(EventType.THEME_CHANGED.name(), this::updateInterfaceTheme);
+    }
+
+    /**
+     * Perform any startup actions.
+     */
+    private void startEditor() {
+        // Open one untitled tab to begin.
+        tabManager.addNewTab("Untitled", new TextArea(this));
+        updateInterfaceTheme(null);
     }
 
     public TabManager getTabManager() {
         return tabManager;
     }
 
+    /**
+     * Updates the UI theme based on the provided event record or saved settings.
+     */
     private void updateInterfaceTheme(EventRecord<Object> eventRecord) {
         String theme = eventRecord == null ? Settings.getInstance().getInterfaceTheme() : eventRecord.data().toString();
-
         var textArea = tabManager.getActiveTextArea();
 
         try {
             if (theme.equalsIgnoreCase("light")) {
                 UIManager.setLookAndFeel(new FlatIntelliJLaf());
-                Theme textAreaTheme = Theme
-                        .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));
+                Theme textAreaTheme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));
                 textAreaTheme.apply(textArea);
-
             } else if (theme.equalsIgnoreCase("dark")) {
                 UIManager.setLookAndFeel(new FlatDarculaLaf());
-                Theme textAreaTheme = Theme
-                        .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/monokai.xml"));
+                Theme textAreaTheme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/monokai.xml"));
                 textAreaTheme.apply(textArea);
-
             } else if (theme.equalsIgnoreCase("retro")) {
                 setUndecorated(true);
                 getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
-                Theme textAreaTheme = Theme
-                        .load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));
+                Theme textAreaTheme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));
                 textAreaTheme.apply(textArea);
                 UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             }
         } catch (Exception e) {
-            Logger.getInstance().error(StatusPanel.class, "Failed to set FlatDarkLaf: " + e.getMessage());
+            Logger.getInstance().error(StatusPanel.class, "Failed to set theme: " + e.getMessage());
             e.printStackTrace();
             return;
         }
 
-        // Recursively update the UI of all components starting with this container.
+        // Update the UI for all components.
         SwingUtilities.updateComponentTreeUI(this);
-
-        // Revalidate and repaint to ensure the changes are visible immediately.
         revalidate();
         repaint();
     }
 
+    /**
+     * Set up the initial window theme.
+     */
     private void setupTheme() {
         if (Settings.getSettings().isEnableClassicTheme()) {
             setUndecorated(true);
@@ -122,7 +160,6 @@ public class Editor extends JFrame {
         } else {
             FlatIntelliJLaf.setup();
         }
-
     }
 
     public SplitPane getSplitPane() {
