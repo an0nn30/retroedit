@@ -142,16 +142,21 @@ public class Editor extends JFrame {
     private void updateInterfaceTheme(EventRecord<Object> eventRecord) {
         String theme = eventRecord == null ? Settings.getInstance().getInterfaceTheme() : eventRecord.data().toString();
         var textArea = tabManager.getActiveTextArea();
-
         try {
+//            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+//            setUndecorated(true);
+//            getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+
             if (theme.equalsIgnoreCase("light")) {
-                UIManager.setLookAndFeel(new FlatIntelliJLaf());
+//                UIManager.setLookAndFeel(new FlatIntelliJLaf());
                 Theme textAreaTheme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));
                 textAreaTheme.apply(textArea);
             } else if (theme.equalsIgnoreCase("dark")) {
-                UIManager.setLookAndFeel(new FlatDarculaLaf());
+//                UIManager.setLookAndFeel(new FlatDarculaLaf());
+
                 Theme textAreaTheme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/monokai.xml"));
                 textAreaTheme.apply(textArea);
+//            }
             } else if (theme.equalsIgnoreCase("retro")) {
                 setUndecorated(true);
                 getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
@@ -194,6 +199,34 @@ public class Editor extends JFrame {
         } else {
             projectEditorSplit.setDividerLocation(1);
             this.tabManager.requestFocus();
+        }
+    }
+
+
+    /**
+     * Recursively applies dark mode styling to the given component and all its child components.
+     *
+     * @param comp The root component to start applying dark mode.
+     */
+    private void applyDarkMode(Component comp) {
+        if (comp instanceof JComponent) {
+            JComponent jComp = (JComponent) comp;
+            // Set a dark background and a light foreground.
+            jComp.setBackground(new Color(43, 43, 43));   // Dark background color.
+            jComp.setForeground(new Color(187, 187, 187)); // Light text color.
+
+            // Optional: Adjust borders, fonts, or other properties if needed.
+            // For example:
+            // if (jComp instanceof JButton) {
+            //     jComp.setBorder(BorderFactory.createLineBorder(new Color(100, 100, 100)));
+            // }
+        }
+
+        // If the component is a container, recursively apply dark mode to its children.
+        if (comp instanceof Container) {
+            for (Component child : ((Container) comp).getComponents()) {
+                applyDarkMode(child);
+            }
         }
     }
 
