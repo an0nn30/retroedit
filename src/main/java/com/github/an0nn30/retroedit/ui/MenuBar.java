@@ -93,6 +93,12 @@ public class MenuBar {
         );
         viewMenu.add(toggleTerminal);
 
+        JMenuItem toggleProjectView = new JMenuItem("Toggle Project View");
+        toggleProjectView.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        toggleProjectView.addActionListener(e -> editor.toggleProjectView());
+        viewMenu.add(toggleProjectView);
+
         // Increase Font Size
         JMenuItem increaseFontSize = new JMenuItem("Increase Font Size");
         increaseFontSize.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS,

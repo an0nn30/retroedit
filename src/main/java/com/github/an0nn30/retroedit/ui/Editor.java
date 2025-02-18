@@ -20,8 +20,11 @@ public class Editor extends JFrame {
     private TabManager tabManager;
     private StatusPanel statusPanel;
     private SplitPane splitPane;
+    private JSplitPane projectEditorSplit;
     private final MacUtils macUtils;
     private DirectoryTree directoryTree;
+
+    private boolean isProjectViewToggled = false;
 
     public Editor() {
         super("Retro Edit");
@@ -61,6 +64,7 @@ public class Editor extends JFrame {
 
         // Directory tree for the project.
         directoryTree = new DirectoryTree(".", this);
+
     }
 
     /**
@@ -75,7 +79,7 @@ public class Editor extends JFrame {
         );
 
         // Split pane dividing the project tree and the main editor/terminal pane.
-        JSplitPane projectEditorSplit = new JSplitPane(
+        projectEditorSplit = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 treeScrollPane,
                 splitPane
@@ -89,6 +93,7 @@ public class Editor extends JFrame {
         setLayout(new BorderLayout());
         add(mainToolbar, BorderLayout.NORTH);
         add(projectEditorSplit, BorderLayout.CENTER);
+//        hideProjectView();
         add(statusPanel, BorderLayout.SOUTH);
     }
 
@@ -140,7 +145,6 @@ public class Editor extends JFrame {
             }
         } catch (Exception e) {
             Logger.getInstance().error(StatusPanel.class, "Failed to set theme: " + e.getMessage());
-            e.printStackTrace();
             return;
         }
 
@@ -162,11 +166,28 @@ public class Editor extends JFrame {
         }
     }
 
+    public void toggleProjectView() {
+        isProjectViewToggled = !isProjectViewToggled;
+        Logger.getInstance().info(getClass(), "Project view toggled: " + isProjectViewToggled);
+        if (isProjectViewToggled) {
+            projectEditorSplit.setDividerLocation(200);
+            this.directoryTree.requestFocus();
+
+        } else {
+            projectEditorSplit.setDividerLocation(1);
+            this.tabManager.requestFocus();
+        }
+    }
+
+
     public SplitPane getSplitPane() {
         return splitPane;
     }
 
     public DirectoryTree getDirectoryTree() {
         return directoryTree;
+    }
+    public JSplitPane getProjectEditorSplit() {
+        return projectEditorSplit;
     }
 }
