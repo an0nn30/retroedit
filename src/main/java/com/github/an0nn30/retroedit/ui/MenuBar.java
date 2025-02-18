@@ -84,7 +84,7 @@ public class MenuBar {
         fileMenu.add(settingsTabItem);
 
         JMenuItem toggleTerminal = new JMenuItem("Toggle Terminal");
-        toggleTerminal.addActionListener(e -> editor.getSplitPane().toggleTerminal());
+//        toggleTerminal.addActionListener(e -> editor.getSplitPane().toggleTerminal());
         toggleTerminal.setAccelerator(
                 KeyStroke.getKeyStroke(
                         KeyEvent.VK_COMMA,
@@ -92,6 +92,12 @@ public class MenuBar {
                 )
         );
         viewMenu.add(toggleTerminal);
+
+        JMenuItem toggleProjectView = new JMenuItem("Toggle Project View");
+        toggleProjectView.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
+                Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
+        toggleProjectView.addActionListener(e -> editor.toggleProjectView());
+        viewMenu.add(toggleProjectView);
 
         // Increase Font Size
         JMenuItem increaseFontSize = new JMenuItem("Increase Font Size");
