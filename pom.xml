@@ -6,7 +6,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.an0nn30</groupId>
     <artifactId>retroedit</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -97,6 +97,11 @@
         <dependency>
             <groupId>com.fifesoft</groupId>
             <artifactId>autocomplete</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fifesoft</groupId>
+            <artifactId>rstaui</artifactId>
             <version>3.3.1</version>
         </dependency>
     </dependencies>
