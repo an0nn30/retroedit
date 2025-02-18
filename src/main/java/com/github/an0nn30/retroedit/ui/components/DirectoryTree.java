@@ -1,5 +1,6 @@
 package com.github.an0nn30.retroedit.ui.components;
 
+import com.github.an0nn30.retroedit.logging.Logger;
 import com.github.an0nn30.retroedit.ui.Editor;
 
 import javax.swing.*;
@@ -17,13 +18,14 @@ public class DirectoryTree extends JTree {
     private boolean hideDotFiles = false;
     private Editor editor;
 
-    public DirectoryTree(String directoryPath, Editor editor) {
+    public DirectoryTree(Editor editor) {
         this.editor = editor;
-        this.rootDirectory = new File(directoryPath);
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(rootDirectory.getName());
-        treeModel = new DefaultTreeModel(rootNode);
+        // Initially, no directory is loaded.
+        this.rootDirectory = null;
+        // Create an empty tree with an empty root node.
+        DefaultMutableTreeNode emptyRoot = new DefaultMutableTreeNode("");
+        treeModel = new DefaultTreeModel(emptyRoot);
         setModel(treeModel);
-        loadDirectory(rootNode, rootDirectory);
 
         // Enable drag and drop
         setDragEnabled(true);
@@ -62,17 +64,36 @@ public class DirectoryTree extends JTree {
         refresh();
     }
 
+    /**
+     * Refreshes the tree view. If no rootDirectory is set, it clears the tree.
+     */
     public void refresh() {
+        if (rootDirectory == null) {
+            // Clear the tree if no directory is selected.
+            treeModel.setRoot(new DefaultMutableTreeNode(""));
+            return;
+        }
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(rootDirectory.getName());
         loadDirectory(rootNode, rootDirectory);
         treeModel.setRoot(rootNode);
     }
 
+    /**
+     * Sets the root directory for the tree and loads its content.
+     *
+     * @param rootDirectory The directory to load.
+     */
     public void setRootDirectory(File rootDirectory) {
         this.rootDirectory = rootDirectory;
         refresh();
     }
 
+    /**
+     * Recursively loads the directory structure into the tree.
+     *
+     * @param node      The parent node in the tree.
+     * @param directory The file system directory to load.
+     */
     public void loadDirectory(DefaultMutableTreeNode node, File directory) {
         if (!directory.isDirectory()) return;
 
@@ -91,15 +112,28 @@ public class DirectoryTree extends JTree {
         }
     }
 
+    /**
+     * Constructs the full file system path from the given TreePath.
+     *
+     * @param path The TreePath from the tree.
+     * @return The full path as a string.
+     */
     private String getFilePathFromTreePath(TreePath path) {
+        if (rootDirectory == null) return "";
         StringBuilder fullPath = new StringBuilder(rootDirectory.getAbsolutePath());
         Object[] nodes = path.getPath();
+        // Skip the first node since it is the root directory name.
         for (int i = 1; i < nodes.length; i++) {
             fullPath.append(File.separator).append(nodes[i].toString());
         }
         return fullPath.toString();
     }
 
+    /**
+     * Opens the file in the editor if it is a file.
+     *
+     * @param filePath The file system path.
+     */
     private void onFileDoubleClicked(String filePath) {
         File file = new File(filePath);
         if (file.isFile()) {
@@ -118,7 +152,7 @@ public class DirectoryTree extends JTree {
 
         String filePath = getFilePathFromTreePath(path);
         File selectedFile = new File(filePath);
-        // Only show the context menu if the selected node represents a directory
+        // Only show the context menu if the selected node represents a directory.
         if (!selectedFile.isDirectory()) {
             return;
         }
@@ -164,7 +198,7 @@ public class DirectoryTree extends JTree {
         });
         contextMenu.add(newDirItem);
 
-        // Prevent deletion or renaming of the root directory
+        // Prevent deletion or renaming of the root directory.
         boolean isRoot = selectedFile.equals(rootDirectory);
 
         // Delete option
