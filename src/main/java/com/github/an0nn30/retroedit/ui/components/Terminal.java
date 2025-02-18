@@ -17,7 +17,7 @@ public class Terminal {
 
 
     public static @NotNull JediTermWidget createTerminalWidget(Editor editor) {
-        JediTermWidget widget = new JediTermWidget(80, 24, new DefaultSettingsProvider());
+        JediTermWidget widget = new JediTermWidget(80, 20, new DefaultSettingsProvider());
         widget.setTtyConnector(createTtyConnector());
         widget.start();
         return widget;
@@ -30,7 +30,7 @@ public class Terminal {
             if (isWindows()) {
                 command = new String[]{"cmd.exe"};
             } else {
-                command = new String[]{"/bin/bash", "--login"};
+                command = new String[]{"/bin/zsh", "--login"};
                 envs = new HashMap<>(System.getenv());
                 envs.put("TERM", "xterm-256color");
             }

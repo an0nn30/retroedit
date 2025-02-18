@@ -10,6 +10,7 @@ import com.github.an0nn30.retroedit.ui.components.DirectoryTree;
 import com.github.an0nn30.retroedit.ui.components.Terminal;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
 import com.github.an0nn30.retroedit.ui.platform.MacUtils;
+import com.jediterm.terminal.ui.JediTermWidget;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import javax.swing.*;
 import java.awt.*;
@@ -19,10 +20,13 @@ public class Editor extends JFrame {
     private MainToolbar mainToolbar;
     private TabManager tabManager;
     private StatusPanel statusPanel;
-    private SplitPane splitPane;
     private JSplitPane projectEditorSplit;
+    private JSplitPane editorTerminalSplit;
     private final MacUtils macUtils;
     private DirectoryTree directoryTree;
+
+    // Use a single instance of the terminal widget.
+    private JediTermWidget terminal;
 
     private boolean isProjectViewToggled = false;
 
@@ -55,22 +59,31 @@ public class Editor extends JFrame {
         tabManager = new TabManager(this);
         statusPanel = new StatusPanel();
 
+        // Create the terminal widget only once.
+        terminal = Terminal.createTerminalWidget(this);
+
         // Set up the menu bar.
         setJMenuBar(new MenuBar(this).getMenuBar());
 
-        // Main split pane with editor and terminal.
-        splitPane = new SplitPane(tabManager, Terminal.createTerminalWidget(this));
-        splitPane.setResizeWeight(1.0);
-
         // Directory tree for the project.
         directoryTree = new DirectoryTree(".", this);
-
     }
 
     /**
      * Layout all components within the frame.
      */
     private void layoutComponents() {
+        // Create the vertical split pane with the tab manager on top and the terminal on bottom.
+        editorTerminalSplit = new JSplitPane(
+                JSplitPane.VERTICAL_SPLIT,
+                tabManager,
+                terminal
+        );
+        // With resize weight set to 1.0, the top component (tabManager) gets nearly all extra space.
+        editorTerminalSplit.setResizeWeight(1.0);
+        editorTerminalSplit.setOneTouchExpandable(true);
+        editorTerminalSplit.setContinuousLayout(true);
+
         // Wrap the directory tree in a scroll pane.
         JScrollPane treeScrollPane = new JScrollPane(
                 directoryTree,
@@ -82,7 +95,7 @@ public class Editor extends JFrame {
         projectEditorSplit = new JSplitPane(
                 JSplitPane.HORIZONTAL_SPLIT,
                 treeScrollPane,
-                splitPane
+                editorTerminalSplit
         );
         projectEditorSplit.setDividerLocation(200);
         projectEditorSplit.setResizeWeight(0.3);
@@ -93,8 +106,11 @@ public class Editor extends JFrame {
         setLayout(new BorderLayout());
         add(mainToolbar, BorderLayout.NORTH);
         add(projectEditorSplit, BorderLayout.CENTER);
-//        hideProjectView();
         add(statusPanel, BorderLayout.SOUTH);
+
+        // Initially hide the project view and terminal.
+        hideProjectView();
+        hideTerminal();
     }
 
     /**
@@ -166,28 +182,41 @@ public class Editor extends JFrame {
         }
     }
 
+    /**
+     * Toggles the visibility of the project view.
+     */
     public void toggleProjectView() {
         isProjectViewToggled = !isProjectViewToggled;
         Logger.getInstance().info(getClass(), "Project view toggled: " + isProjectViewToggled);
         if (isProjectViewToggled) {
             projectEditorSplit.setDividerLocation(200);
             this.directoryTree.requestFocus();
-
         } else {
             projectEditorSplit.setDividerLocation(1);
             this.tabManager.requestFocus();
         }
     }
 
-
-    public SplitPane getSplitPane() {
-        return splitPane;
-    }
-
     public DirectoryTree getDirectoryTree() {
         return directoryTree;
     }
-    public JSplitPane getProjectEditorSplit() {
-        return projectEditorSplit;
+
+    /**
+     * Hides the project view by moving its divider completely.
+     */
+    public void hideProjectView() {
+        projectEditorSplit.setDividerLocation(1);
+    }
+
+    /**
+     * Hides the terminal by setting the divider location of the vertical split pane to 100%.
+     * This gives the top component (the TabManager) all the space.
+     */
+    public void hideTerminal() {
+        // Invoke later to ensure the split pane has been laid out.
+        SwingUtilities.invokeLater(() -> {
+            // Setting the divider location to 1.0 (i.e. 100% of the height) effectively hides the terminal.
+            editorTerminalSplit.setDividerLocation(1.0);
+        });
     }
 }

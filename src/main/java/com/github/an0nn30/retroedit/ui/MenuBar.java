@@ -84,7 +84,7 @@ public class MenuBar {
         fileMenu.add(settingsTabItem);
 
         JMenuItem toggleTerminal = new JMenuItem("Toggle Terminal");
-        toggleTerminal.addActionListener(e -> editor.getSplitPane().toggleTerminal());
+//        toggleTerminal.addActionListener(e -> editor.getSplitPane().toggleTerminal());
         toggleTerminal.setAccelerator(
                 KeyStroke.getKeyStroke(
                         KeyEvent.VK_COMMA,
