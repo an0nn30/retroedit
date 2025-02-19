@@ -70,10 +70,7 @@ public class MainToolbar extends Panel {
         JButton stopButton = new JButton(new FlatSVGIcon("icons/suspend.svg"));
         stopButton.setEnabled(false);
 
-        JButton toggleTerminal = new JButton(new FlatSVGIcon("icons/terminal.svg"));
-        toggleTerminal.addActionListener(e -> {
-            editor.toggleTerminal();
-        });
+
 
 
         toolBar.add(openButton);
@@ -88,7 +85,6 @@ public class MainToolbar extends Panel {
         toolBar.add(runButton);
         toolBar.add(debugButton);
         toolBar.add(stopButton);
-        toolBar.add(toggleTerminal);
 
         return toolBar;
     }

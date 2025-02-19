@@ -6,7 +6,6 @@ import com.github.an0nn30.retroedit.ui.Editor;
 import com.github.an0nn30.retroedit.ui.utils.FileUtils;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 
 public class FileManagerUtil {

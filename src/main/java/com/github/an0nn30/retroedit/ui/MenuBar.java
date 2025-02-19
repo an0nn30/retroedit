@@ -1,6 +1,7 @@
 package com.github.an0nn30.retroedit.ui;
 
 import com.github.an0nn30.retroedit.FileManagerUtil;
+import com.github.an0nn30.retroedit.jforms.AboutDialog;
 import com.github.an0nn30.retroedit.jforms.Settings;
 import com.github.an0nn30.retroedit.ui.actions.FindDialogAction;
 import com.github.an0nn30.retroedit.ui.actions.GoToLineAction;
@@ -77,6 +78,10 @@ public class MenuBar {
         });
         fileMenu.add(closeTabItem);
 
+        JMenuItem aboutItem = new JMenuItem("About");
+        aboutItem.addActionListener(e -> new AboutDialog(editor).setVisible(true));
+        fileMenu.add(aboutItem);
+
         JMenuItem settingsTabItem = new JMenuItem("Settings");
         settingsTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
@@ -116,6 +121,10 @@ public class MenuBar {
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         decreaseFontSize.addActionListener(e -> editor.getTabManager().adjustFontSize(-2));
         viewMenu.add(decreaseFontSize);
+
+        JMenuItem toggleStatusBar = new JMenuItem("Toggle Status Bar");
+        toggleStatusBar.addActionListener(e -> editor.getStatusPanel().toggle());
+        viewMenu.add(toggleStatusBar);
 
         // Previous Tab
         JMenuItem prevTab = new JMenuItem("Previous Tab");

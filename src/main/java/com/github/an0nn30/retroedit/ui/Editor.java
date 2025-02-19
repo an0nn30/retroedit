@@ -1,6 +1,8 @@
 // File: com/github/an0nn30/retroedit/ui/Editor.java
 package com.github.an0nn30.retroedit.ui;
 
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventRecord;
 import com.github.an0nn30.retroedit.event.EventType;
@@ -35,7 +37,7 @@ public class Editor extends JFrame {
         layoutComponents();
         registerEventSubscriptions();
         startEditor();
-
+        disableAllToolbars(this);
     }
 
     private void initializeFrame() {
@@ -46,7 +48,7 @@ public class Editor extends JFrame {
     private void initializeComponents() {
         mainToolbar = new MainToolbar(this);
         tabManager = new TabManager(this);
-        statusPanel = new StatusPanel();
+        statusPanel = new StatusPanel(this);
         terminal = Terminal.createTerminalWidget(this);
         setJMenuBar(new MenuBar(this).getMenuBar());
         directoryTree = new DirectoryTree(this);
@@ -109,6 +111,10 @@ public class Editor extends JFrame {
         return tabManager;
     }
 
+    public StatusPanel getStatusPanel() {
+        return statusPanel;
+    }
+
     public DirectoryTree getDirectoryTree() {
         return directoryTree;
     }
@@ -146,5 +152,20 @@ public class Editor extends JFrame {
 
     public void hideTerminal() {
         SwingUtilities.invokeLater(() -> editorTerminalSplit.setDividerLocation(1.0));
+    }
+
+    private void disableFloatingToolbars(Component component) {
+        if (component instanceof JToolBar) {
+            ((JToolBar) component).setFloatable(false);
+        } else if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                disableFloatingToolbars(child); // Recursively check child components
+            }
+        }
+    }
+
+    private void disableAllToolbars(JFrame frame) {
+        FlatLightLaf.setup();
+        disableFloatingToolbars(frame.getContentPane()); // Start traversal from the frame's content pane
     }
 }
