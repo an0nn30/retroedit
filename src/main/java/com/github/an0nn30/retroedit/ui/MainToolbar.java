@@ -3,8 +3,6 @@ package com.github.an0nn30.retroedit.ui;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.an0nn30.retroedit.FileManagerUtil;
-import com.github.an0nn30.retroedit.logging.Logger;
-import com.github.an0nn30.retroedit.ui.actions.FindDialogAction;
 import com.github.an0nn30.retroedit.ui.components.Button;
 import com.github.an0nn30.retroedit.ui.components.Panel;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
@@ -17,11 +15,11 @@ import java.io.IOException;
 
 public class MainToolbar extends Panel {
 
-    private final Editor editor;
+    private final EditorFrame editorFrame;
 
-    public MainToolbar(Editor editor) {
-        super(editor);
-        this.editor = editor;
+    public MainToolbar(EditorFrame editorFrame) {
+        super(editorFrame);
+        this.editorFrame = editorFrame;
         FlatIntelliJLaf.install();
 
         addComponent(initToolBar(), PanelPosition.LEFT);
@@ -33,21 +31,21 @@ public class MainToolbar extends Panel {
 
         // Open: call FileManagerUtil with the Editor reference.
         Button openButton = new Button(new FlatSVGIcon("icons/menu-open_dark.svg"), "openButton");
-        openButton.addActionListener(e -> FileManagerUtil.openFile(editor));
+        openButton.addActionListener(e -> FileManagerUtil.openFile(editorFrame));
 
         // Save: call the TabManager’s save method directly.
         JButton saveButton = new JButton(new FlatSVGIcon("icons/menu-saveall_dark.svg"));
-        saveButton.addActionListener(e -> editor.getTabManager().saveFile(false));
+        saveButton.addActionListener(e -> editorFrame.getTabManager().saveFile(false));
 
         // Refresh: re-read the active file.
         JButton refreshButton = new JButton(new FlatSVGIcon("icons/refresh.svg"));
         refreshButton.addActionListener(e -> {
-            TextArea textArea = editor.getTabManager().getActiveTextArea();
+            TextArea textArea = editorFrame.getTabManager().getActiveTextArea();
             File file = textArea.getActiveFile();
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 textArea.read(reader, null);
             } catch (IOException ex) {
-                JOptionPane.showMessageDialog(editor,
+                JOptionPane.showMessageDialog(editorFrame,
                         "Error refreshing file",
                         "Error",
                         JOptionPane.ERROR_MESSAGE);

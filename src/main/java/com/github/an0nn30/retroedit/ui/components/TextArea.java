@@ -9,7 +9,7 @@ import org.fife.ui.autocomplete.*;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
-import com.github.an0nn30.retroedit.ui.Editor;
+import com.github.an0nn30.retroedit.ui.EditorFrame;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,11 +20,11 @@ public class TextArea extends RSyntaxTextArea {
 
     private Map<String, String> syntaxMap;
     private File activeFile;
-    private final Editor editor;
+    private final EditorFrame editorFrame;
 
-    public TextArea(Editor editor) {
+    public TextArea(EditorFrame editorFrame) {
         super();
-        this.editor = editor;
+        this.editorFrame = editorFrame;
         initSyntaxMap();
         try {
             Theme theme = Theme.load(getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/idea.xml"));

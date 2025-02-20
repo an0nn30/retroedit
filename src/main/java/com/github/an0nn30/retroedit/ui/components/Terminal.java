@@ -1,6 +1,6 @@
 package com.github.an0nn30.retroedit.ui.components;
 
-import com.github.an0nn30.retroedit.ui.Editor;
+import com.github.an0nn30.retroedit.ui.EditorFrame;
 import com.jediterm.pty.PtyProcessTtyConnector;
 import com.jediterm.terminal.TtyConnector;
 import com.jediterm.terminal.ui.JediTermWidget;
@@ -16,7 +16,7 @@ import java.util.Map;
 public class Terminal {
 
 
-    public static @NotNull JediTermWidget createTerminalWidget(Editor editor) {
+    public static @NotNull JediTermWidget createTerminalWidget(EditorFrame editorFrame) {
         JediTermWidget widget = new JediTermWidget(80, 20, new DefaultSettingsProvider());
         widget.setTtyConnector(createTtyConnector());
         widget.start();

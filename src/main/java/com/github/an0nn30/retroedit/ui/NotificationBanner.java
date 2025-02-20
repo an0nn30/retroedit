@@ -4,9 +4,9 @@ import javax.swing.*;
 import java.awt.*;
 
 public class NotificationBanner extends JPanel {
-    private Editor editor;
-    public NotificationBanner(Editor editor) {
-        this.editor = editor;
+    private EditorFrame editorFrame;
+    public NotificationBanner(EditorFrame editorFrame) {
+        this.editorFrame = editorFrame;
         this.setBackground(Color.YELLOW);
 
 

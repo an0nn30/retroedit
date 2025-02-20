@@ -1,6 +1,6 @@
 package com.github.an0nn30.retroedit.jforms;
 
-import com.github.an0nn30.retroedit.ui.Editor;
+import com.github.an0nn30.retroedit.ui.EditorFrame;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
@@ -21,10 +21,10 @@ public class Settings extends JDialog {
     private JComboBox fontFamilySpinner;
     private boolean fontFamilyChanged = false;
 
-    private Editor editor;
+    private EditorFrame editorFrame;
 
-    public Settings(Editor editor) {
-        this.editor = editor;
+    public Settings(EditorFrame editorFrame) {
+        this.editorFrame = editorFrame;
         setContentPane(contentPane);
         setModal(true);
         getRootPane().setDefaultButton(buttonOK);

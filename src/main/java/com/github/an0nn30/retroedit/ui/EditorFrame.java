@@ -1,7 +1,6 @@
 // File: com/github/an0nn30/retroedit/ui/Editor.java
 package com.github.an0nn30.retroedit.ui;
 
-import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventRecord;
@@ -15,7 +14,7 @@ import com.jediterm.terminal.ui.JediTermWidget;
 import javax.swing.*;
 import java.awt.*;
 
-public class Editor extends JFrame {
+public class EditorFrame extends JFrame {
 
     private boolean terminalShowing = true;
     private MainToolbar mainToolbar;
@@ -28,7 +27,7 @@ public class Editor extends JFrame {
     private boolean isProjectViewToggled = false;
     private SearchController searchController;
 
-    public Editor() {
+    public EditorFrame() {
         super("Retro Edit");
         ThemeManager.setupWindowFrame(this); // Delegate theme setup
 

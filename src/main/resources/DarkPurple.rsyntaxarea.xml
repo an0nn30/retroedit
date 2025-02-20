@@ -6,7 +6,7 @@
 -->
 <RSyntaxTheme version="1.0">
 
-    <!-- General editor colors. -->
+    <!-- General editorFrame colors. -->
     <background color="1D1D26" />
     <caret color="D0D0D9" />
     <selection useFG="false" bg="713a91" roundedEdges="false" />

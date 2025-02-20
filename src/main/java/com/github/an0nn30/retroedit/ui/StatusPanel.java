@@ -12,15 +12,15 @@ import java.awt.*;
 import java.util.Map;
 
 public class StatusPanel extends Panel {
-    private Editor editor;
+    private EditorFrame editorFrame;
     private boolean visible = true;
 
-    public StatusPanel(Editor editor) {
+    public StatusPanel(EditorFrame editorFrame) {
         super();
-        this.editor = editor;
+        this.editorFrame = editorFrame;
 
-        JButton toggleTerminal = new JButton(new FlatSVGIcon("icons/terminal.svg"));
-        toggleTerminal.addActionListener(e -> editor.toggleTerminal());
+        JButton toggleTerminal = new JButton(new FlatSVGIcon("icons/command_dark.svg"));
+        toggleTerminal.addActionListener(e -> editorFrame.toggleTerminal());
 
         // Left toolbar with reduced height
         JToolBar leftToolBar = createToolBar();

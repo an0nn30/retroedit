@@ -2,7 +2,7 @@ package com.github.an0nn30.retroedit;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.github.an0nn30.retroedit.settings.Settings;
-import com.github.an0nn30.retroedit.ui.Editor;
+import com.github.an0nn30.retroedit.ui.EditorFrame;
 
 public class Main {
     public static void main(String[] args) {
@@ -16,6 +16,6 @@ public class Main {
                 System.setProperty( "apple.awt.application.appearance", "NSAppearanceNameDarkAqua" );
         }
         FlatIntelliJLaf.install();
-        new Editor().setVisible(true);
+        new EditorFrame().setVisible(true);
     }
 }

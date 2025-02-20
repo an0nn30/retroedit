@@ -1,7 +1,6 @@
 package com.github.an0nn30.retroedit.ui.components;
 
-import com.github.an0nn30.retroedit.logging.Logger;
-import com.github.an0nn30.retroedit.ui.Editor;
+import com.github.an0nn30.retroedit.ui.EditorFrame;
 
 import javax.swing.*;
 import javax.swing.tree.*;
@@ -16,10 +15,10 @@ public class DirectoryTree extends JTree {
     private DefaultTreeModel treeModel;
     private File rootDirectory;
     private boolean hideDotFiles = false;
-    private Editor editor;
+    private EditorFrame editorFrame;
 
-    public DirectoryTree(Editor editor) {
-        this.editor = editor;
+    public DirectoryTree(EditorFrame editorFrame) {
+        this.editorFrame = editorFrame;
         // Initially, no directory is loaded.
         this.rootDirectory = null;
         // Create an empty tree with an empty root node.
@@ -137,7 +136,7 @@ public class DirectoryTree extends JTree {
     private void onFileDoubleClicked(String filePath) {
         File file = new File(filePath);
         if (file.isFile()) {
-            editor.getTabManager().openFile(file);
+            editorFrame.getTabManager().openFile(file);
         }
     }
 

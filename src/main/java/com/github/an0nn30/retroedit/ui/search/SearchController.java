@@ -1,9 +1,8 @@
 package com.github.an0nn30.retroedit.ui.search;
 
 
-import com.github.an0nn30.retroedit.ui.Editor;
+import com.github.an0nn30.retroedit.ui.EditorFrame;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
-import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
 import org.fife.rsta.ui.search.*;
 import org.fife.ui.rtextarea.SearchContext;
 import org.fife.ui.rtextarea.SearchEngine;
@@ -13,17 +12,17 @@ import javax.swing.*;
 
 public class SearchController implements SearchListener {
 
-    private final Editor editor;
+    private final EditorFrame editorFrame;
     private final FindDialog findDialog;
     private final ReplaceDialog replaceDialog;
     private final FindToolBar findToolBar;
     private final ReplaceToolBar replaceToolBar;
 
-    public SearchController(Editor editor) {
-        this.editor = editor;
+    public SearchController(EditorFrame editorFrame) {
+        this.editorFrame = editorFrame;
         // Initialize dialogs; pass `this` as the listener if you wish for SearchController to handle events.
-        findDialog = new FindDialog(editor, this);
-        replaceDialog = new ReplaceDialog(editor, this);
+        findDialog = new FindDialog(editorFrame, this);
+        replaceDialog = new ReplaceDialog(editorFrame, this);
 
         // Tie the dialogs together.
         SearchContext context = findDialog.getSearchContext();
@@ -64,7 +63,7 @@ public class SearchController implements SearchListener {
     @Override
     public void searchEvent(SearchEvent e) {
         SearchContext context = e.getSearchContext();
-        TextArea activeTextArea = editor.getTabManager().getActiveTextArea();
+        TextArea activeTextArea = editorFrame.getTabManager().getActiveTextArea();
         SearchResult result = null;
         switch (e.getType()) {
             case MARK_ALL:
@@ -94,7 +93,7 @@ public class SearchController implements SearchListener {
 
     @Override
     public String getSelectedText() {
-        return this.editor.getTabManager().getActiveTextArea().getSelectedText();
+        return this.editorFrame.getTabManager().getActiveTextArea().getSelectedText();
     }
 }
 

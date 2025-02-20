@@ -16,10 +16,10 @@ import java.awt.event.KeyEvent;
 public class MenuBar {
 
     private final JMenuBar menuBar;
-    private final Editor editor;
+    private final EditorFrame editorFrame;
 
-    public MenuBar(Editor editor) {
-        this.editor = editor;
+    public MenuBar(EditorFrame editorFrame) {
+        this.editorFrame = editorFrame;
         menuBar = new JMenuBar();
         createMenus();
     }
@@ -37,21 +37,21 @@ public class MenuBar {
         JMenuItem openItem = new JMenuItem("Open");
         openItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        openItem.addActionListener(e -> FileManagerUtil.openFile(editor));
+        openItem.addActionListener(e -> FileManagerUtil.openFile(editorFrame));
         fileMenu.add(openItem);
 
         // Save
         JMenuItem saveItem = new JMenuItem("Save");
         saveItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        saveItem.addActionListener(e -> editor.getTabManager().saveFile(false));
+        saveItem.addActionListener(e -> editorFrame.getTabManager().saveFile(false));
         fileMenu.add(saveItem);
 
         // New Tab
         JMenuItem newTabItem = new JMenuItem("New Tab");
         newTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        newTabItem.addActionListener(e -> editor.getTabManager().addNewTab("Untitled", null));
+        newTabItem.addActionListener(e -> editorFrame.getTabManager().addNewTab("Untitled", null));
         fileMenu.add(newTabItem);
 
         // Close Tab
@@ -59,14 +59,14 @@ public class MenuBar {
         closeTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         closeTabItem.addActionListener(e -> {
-            TabManager tabbedPane = editor.getTabManager();
+            TabManager tabbedPane = editorFrame.getTabManager();
             int tabCount = tabbedPane.getTabCount();
             if (tabCount > 1) {
                 tabbedPane.closeCurrentTab();
             } else if (tabCount == 1) {
                 String tabTitle = tabbedPane.getTitleAt(0);
                 if ("Untitled".equals(tabTitle) || tabTitle.startsWith("*Untitled")) {
-                    JOptionPane.showMessageDialog(editor,
+                    JOptionPane.showMessageDialog(editorFrame,
                             "Cannot close the only untitled tab.",
                             "Warning",
                             JOptionPane.WARNING_MESSAGE);
@@ -79,14 +79,14 @@ public class MenuBar {
         fileMenu.add(closeTabItem);
 
         JMenuItem aboutItem = new JMenuItem("About");
-        aboutItem.addActionListener(e -> new AboutDialog(editor).setVisible(true));
+        aboutItem.addActionListener(e -> new AboutDialog(editorFrame).setVisible(true));
         fileMenu.add(aboutItem);
 
         JMenuItem settingsTabItem = new JMenuItem("Settings");
         settingsTabItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_COMMA,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         settingsTabItem.addActionListener(e -> {
-            Settings dialog = new Settings(editor);
+            Settings dialog = new Settings(editorFrame);
             dialog.pack();
             dialog.setVisible(true);
         });
@@ -105,25 +105,25 @@ public class MenuBar {
         JMenuItem toggleProjectView = new JMenuItem("Toggle Project View");
         toggleProjectView.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        toggleProjectView.addActionListener(e -> editor.toggleProjectView());
+        toggleProjectView.addActionListener(e -> editorFrame.toggleProjectView());
         viewMenu.add(toggleProjectView);
 
         // Increase Font Size
         JMenuItem increaseFontSize = new JMenuItem("Increase Font Size");
         increaseFontSize.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        increaseFontSize.addActionListener(e -> editor.getTabManager().adjustFontSize(2));
+        increaseFontSize.addActionListener(e -> editorFrame.getTabManager().adjustFontSize(2));
         viewMenu.add(increaseFontSize);
 
         // Decrease Font Size
         JMenuItem decreaseFontSize = new JMenuItem("Decrease Font Size");
         decreaseFontSize.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS,
                 Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
-        decreaseFontSize.addActionListener(e -> editor.getTabManager().adjustFontSize(-2));
+        decreaseFontSize.addActionListener(e -> editorFrame.getTabManager().adjustFontSize(-2));
         viewMenu.add(decreaseFontSize);
 
         JMenuItem toggleStatusBar = new JMenuItem("Toggle Status Bar");
-        toggleStatusBar.addActionListener(e -> editor.getStatusPanel().toggle());
+        toggleStatusBar.addActionListener(e -> editorFrame.getStatusPanel().toggle());
         viewMenu.add(toggleStatusBar);
 
         // Previous Tab
@@ -132,7 +132,7 @@ public class MenuBar {
                 KeyEvent.VK_OPEN_BRACKET,
                 InputEvent.SHIFT_DOWN_MASK | InputEvent.META_DOWN_MASK
         ));
-        prevTab.addActionListener(e -> editor.getTabManager().previousTab());
+        prevTab.addActionListener(e -> editorFrame.getTabManager().previousTab());
         viewMenu.add(prevTab);
 
         // Next Tab
@@ -141,12 +141,12 @@ public class MenuBar {
                 KeyEvent.VK_CLOSE_BRACKET,
                 InputEvent.SHIFT_DOWN_MASK | InputEvent.META_DOWN_MASK
         ));
-        nextTab.addActionListener(e -> editor.getTabManager().nextTab());
+        nextTab.addActionListener(e -> editorFrame.getTabManager().nextTab());
         viewMenu.add(nextTab);
 
-        editMenu.add(new JMenuItem(new FindDialogAction(editor)));
-        editMenu.add(new JMenuItem(new ReplaceDialogAction(editor)));
-        editMenu.add(new JMenuItem(new GoToLineAction(editor)));
+        editMenu.add(new JMenuItem(new FindDialogAction(editorFrame)));
+        editMenu.add(new JMenuItem(new ReplaceDialogAction(editorFrame)));
+        editMenu.add(new JMenuItem(new GoToLineAction(editorFrame)));
 
 
 

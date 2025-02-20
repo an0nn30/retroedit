@@ -16,18 +16,18 @@ import java.io.*;
 
 public class TabManager extends JTabbedPane {
 
-    private final Editor editor;
+    private final EditorFrame editorFrame;
 
-    public TabManager(Editor editor) {
+    public TabManager(EditorFrame editorFrame) {
         super(SwingConstants.TOP);
-        this.editor = editor;
+        this.editorFrame = editorFrame;
         EventBus.subscribe(EventType.TAB_UPDATED.name(), event -> setTitleAt(getSelectedIndex(), event.data().toString()));
 
     }
 
     // Creates a new TextArea and applies settings.
     private TextArea createTextArea() {
-        TextArea textArea = new TextArea(editor);
+        TextArea textArea = new TextArea(editorFrame);
         Theme theme = null;
         try {
             if (Settings.getInstance().getInterfaceTheme().equalsIgnoreCase("light")) {
@@ -146,7 +146,7 @@ public class TabManager extends JTabbedPane {
             }
             FileUtils.setCurrentFile(newTextArea, file);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(editor, "Error opening file",
+            JOptionPane.showMessageDialog(editorFrame, "Error opening file",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -157,7 +157,7 @@ public class TabManager extends JTabbedPane {
         if (textArea == null) return;
         File file = FileUtils.getCurrentFile(textArea);
         if (file == null || saveAs) {
-            file = FileUtils.saveFileDialog(editor);
+            file = FileUtils.saveFileDialog(editorFrame);
             if (file == null) return;
             FileUtils.setCurrentFile(textArea, file);
         }
@@ -167,7 +167,7 @@ public class TabManager extends JTabbedPane {
             setTitleAt(index, file.getName());
             EventBus.publish(EventType.TAB_UPDATED.name(), file.getName(), this);
         } catch (IOException e) {
-            JOptionPane.showMessageDialog(editor, "Error saving file",
+            JOptionPane.showMessageDialog(editorFrame, "Error saving file",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -231,7 +231,7 @@ public class TabManager extends JTabbedPane {
         if (index != -1) {
             String title = getTitleAt(index);
             if (title.startsWith("*")) {
-                int choice = JOptionPane.showConfirmDialog(editor,
+                int choice = JOptionPane.showConfirmDialog(editorFrame,
                         "You have unsaved changes. Save now?",
                         "Unsaved Changes", JOptionPane.YES_NO_CANCEL_OPTION);
                 if (choice == JOptionPane.CANCEL_OPTION) {
