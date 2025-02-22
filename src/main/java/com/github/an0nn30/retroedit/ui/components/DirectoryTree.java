@@ -1,6 +1,7 @@
 package com.github.an0nn30.retroedit.ui.components;
 
 import com.github.an0nn30.retroedit.ui.EditorFrame;
+import com.github.an0nn30.retroedit.ui.search.ProjectFileSearchIndex;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -78,12 +79,15 @@ public class DirectoryTree extends JTree {
 
     /**
      * Sets the root directory to display in the tree and refreshes the view.
+     * Also triggers asynchronous indexing of the project files.
      *
      * @param rootDirectory the directory to load.
      */
     public void setRootDirectory(File rootDirectory) {
         this.rootDirectory = rootDirectory;
         refresh();
+        // Trigger asynchronous indexing when the root directory is set.
+        ProjectFileSearchIndex.buildIndex(rootDirectory);
     }
 
     /**
@@ -447,5 +451,14 @@ public class DirectoryTree extends JTree {
             }
             return false;
         }
+    }
+
+    /**
+     * Returns the root directory.
+     *
+     * @return the current root directory.
+     */
+    public File getRootDirectory() {
+        return this.rootDirectory;
     }
 }

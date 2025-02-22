@@ -1,5 +1,6 @@
 package com.github.an0nn30.retroedit.ui;
 
+import com.github.an0nn30.retroedit.ui.search.ProjectFileSearchDialog;
 import com.github.an0nn30.retroedit.ui.utils.FileManagerUtil;
 import com.github.an0nn30.retroedit.jforms.AboutDialog;
 import com.github.an0nn30.retroedit.jforms.Settings;
@@ -198,6 +199,10 @@ public class MenuBar {
         editMenu.add(new JMenuItem(new FindDialogAction(editorFrame)));
         editMenu.add(new JMenuItem(new ReplaceDialogAction(editorFrame)));
         editMenu.add(new JMenuItem(new GoToLineAction(editorFrame)));
+        JMenuItem searchProjectItem = createMenuItem("Search in project...",
+                KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK),
+                e -> new ProjectFileSearchDialog(editorFrame).setVisible(true));
+        editMenu.add(searchProjectItem);
 
         return editMenu;
     }
