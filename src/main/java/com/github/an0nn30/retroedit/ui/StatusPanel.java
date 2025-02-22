@@ -20,7 +20,7 @@ public class StatusPanel extends Panel {
         this.editorFrame = editorFrame;
 
         JButton toggleTerminal = new JButton(new FlatSVGIcon("icons/command_dark.svg"));
-        toggleTerminal.addActionListener(e -> editorFrame.toggleTerminal());
+        toggleTerminal.addActionListener(e -> editorFrame.toggleTerminalView());
 
         // Left toolbar with reduced height
         JToolBar leftToolBar = createToolBar();
