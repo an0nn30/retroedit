@@ -56,11 +56,6 @@ public class Settings extends JDialog {
 
         });
 
-//        editorSchemeComboBox.addItem("default");
-//        editorSchemeComboBox.addItem("dark");
-//        editorSchemeComboBox.addItem("idea");
-//        editorSchemeComboBox.addItem("monokai");
-//        editorSchemeComboBox.setSelectedItem(com.github.an0nn30.editor.settings.Settings.getInstance().getEditorColorScheme());
 
         Integer[] fontSizes = {8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36};
         fontSizeSpinner.setModel(new SpinnerListModel(fontSizes));
@@ -94,7 +89,6 @@ public class Settings extends JDialog {
         var settings = com.github.an0nn30.retroedit.settings.Settings.getInstance();
         settings.setEditorFontSize((int) fontSizeSpinner.getValue());
         settings.setInterfaceTheme(colorThemeComboBox.getSelectedItem().toString());
-//        settings.setEditorColorScheme(editorSchemeComboBox.getSelectedItem().toString());
         settings.setEditorFontFamily(fontFamilySpinner.getSelectedItem().toString());
 
         dispose();

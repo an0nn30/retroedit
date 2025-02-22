@@ -3,72 +3,71 @@ package com.github.an0nn30.retroedit.ui.components;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
 
 import javax.swing.*;
-import javax.swing.tree.*;
-import java.awt.datatransfer.*;
-import java.awt.event.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import java.awt.Component;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * A JTree component that displays a directory structure.
+ * It supports features like hiding dot-files, drag-and-drop for moving files/directories,
+ * context menus for creating, deleting, and renaming files/directories, and double-click to open files.
+ */
 public class DirectoryTree extends JTree {
+
     private DefaultTreeModel treeModel;
     private File rootDirectory;
     private boolean hideDotFiles = false;
     private EditorFrame editorFrame;
 
+    /**
+     * Constructs a DirectoryTree associated with the given EditorFrame.
+     *
+     * @param editorFrame the parent EditorFrame.
+     */
     public DirectoryTree(EditorFrame editorFrame) {
         this.editorFrame = editorFrame;
-        // Initially, no directory is loaded.
-        this.rootDirectory = null;
-        // Create an empty tree with an empty root node.
+        this.rootDirectory = null; // No directory loaded initially.
+        // Initialize with an empty root node.
         DefaultMutableTreeNode emptyRoot = new DefaultMutableTreeNode("");
         treeModel = new DefaultTreeModel(emptyRoot);
         setModel(treeModel);
 
-        // Enable drag and drop
+        // Enable drag-and-drop functionality.
         setDragEnabled(true);
         setDropMode(DropMode.ON);
         setTransferHandler(new FileTransferHandler());
 
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                // Show context menu on popup trigger (platform dependent)
-                if (e.isPopupTrigger()) {
-                    showContextMenu(e);
-                }
-                // Handle double-click to open files
-                if (e.getClickCount() == 2) {
-                    TreePath path = getPathForLocation(e.getX(), e.getY());
-                    if (path != null) {
-                        String filePath = getFilePathFromTreePath(path);
-                        onFileDoubleClicked(filePath);
-                    }
-                }
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                // On some platforms, popup trigger is on mouseReleased
-                if (e.isPopupTrigger()) {
-                    showContextMenu(e);
-                }
-            }
-        });
+        // Add a mouse listener to handle context menu and double-click events.
+        addMouseListener(createMouseListener());
     }
 
+    /**
+     * Sets whether files beginning with a dot (hidden files) should be hidden.
+     *
+     * @param hideDotFiles true to hide dot-files, false to show.
+     */
     public void setHideDotFiles(boolean hideDotFiles) {
         this.hideDotFiles = hideDotFiles;
         refresh();
     }
 
     /**
-     * Refreshes the tree view. If no rootDirectory is set, it clears the tree.
+     * Refreshes the tree view by reloading the directory structure.
+     * If no root directory is set, the tree is cleared.
      */
     public void refresh() {
         if (rootDirectory == null) {
-            // Clear the tree if no directory is selected.
+            // Clear tree if no directory is selected.
             treeModel.setRoot(new DefaultMutableTreeNode(""));
             return;
         }
@@ -78,9 +77,9 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * Sets the root directory for the tree and loads its content.
+     * Sets the root directory to display in the tree and refreshes the view.
      *
-     * @param rootDirectory The directory to load.
+     * @param rootDirectory the directory to load.
      */
     public void setRootDirectory(File rootDirectory) {
         this.rootDirectory = rootDirectory;
@@ -88,23 +87,30 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * Recursively loads the directory structure into the tree.
+     * Recursively loads the file system directory into the tree starting from the specified directory.
      *
-     * @param node      The parent node in the tree.
-     * @param directory The file system directory to load.
+     * @param parentNode the parent node in the tree.
+     * @param directory  the directory to load.
      */
-    public void loadDirectory(DefaultMutableTreeNode node, File directory) {
-        if (!directory.isDirectory()) return;
+    public void loadDirectory(DefaultMutableTreeNode parentNode, File directory) {
+        if (!directory.isDirectory()) {
+            return;
+        }
 
         File[] files = directory.listFiles();
-        if (files == null) return;
+        if (files == null) {
+            return;
+        }
 
+        // Sort files alphabetically.
         Arrays.sort(files, Comparator.comparing(File::getName));
 
         for (File file : files) {
-            if (hideDotFiles && file.getName().startsWith(".")) continue;
+            if (hideDotFiles && file.getName().startsWith(".")) {
+                continue;
+            }
             DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(file.getName());
-            node.add(childNode);
+            parentNode.add(childNode);
             if (file.isDirectory()) {
                 loadDirectory(childNode, file);
             }
@@ -112,16 +118,18 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * Constructs the full file system path from the given TreePath.
+     * Constructs the full file system path from the provided TreePath.
      *
-     * @param path The TreePath from the tree.
-     * @return The full path as a string.
+     * @param path the TreePath representing a node in the tree.
+     * @return the full file system path as a string.
      */
     private String getFilePathFromTreePath(TreePath path) {
-        if (rootDirectory == null) return "";
+        if (rootDirectory == null) {
+            return "";
+        }
         StringBuilder fullPath = new StringBuilder(rootDirectory.getAbsolutePath());
         Object[] nodes = path.getPath();
-        // Skip the first node since it is the root directory name.
+        // Skip the first node as it represents the root directory name.
         for (int i = 1; i < nodes.length; i++) {
             fullPath.append(File.separator).append(nodes[i].toString());
         }
@@ -129,9 +137,9 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * Opens the file in the editor if it is a file.
+     * Handles double-click events on tree nodes to open files in the editor.
      *
-     * @param filePath The file system path.
+     * @param filePath the file system path of the double-clicked node.
      */
     private void onFileDoubleClicked(String filePath) {
         File file = new File(filePath);
@@ -141,7 +149,55 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * Shows a context menu for directory operations when right-clicking a directory.
+     * Creates and returns a MouseAdapter to handle mouse events on the tree.
+     *
+     * @return the MouseAdapter.
+     */
+    private MouseAdapter createMouseListener() {
+        return new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                handlePopupTrigger(e);
+                if (e.getClickCount() == 2) {
+                    handleDoubleClick(e);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                handlePopupTrigger(e);
+            }
+        };
+    }
+
+    /**
+     * Checks if the mouse event is a popup trigger and shows the context menu if so.
+     *
+     * @param e the MouseEvent.
+     */
+    private void handlePopupTrigger(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            showContextMenu(e);
+        }
+    }
+
+    /**
+     * Handles a double-click mouse event by opening the file (if applicable).
+     *
+     * @param e the MouseEvent.
+     */
+    private void handleDoubleClick(MouseEvent e) {
+        TreePath path = getPathForLocation(e.getX(), e.getY());
+        if (path != null) {
+            String filePath = getFilePathFromTreePath(path);
+            onFileDoubleClicked(filePath);
+        }
+    }
+
+    /**
+     * Displays a context menu with directory operations at the location of the mouse event.
+     *
+     * @param e the MouseEvent triggering the context menu.
      */
     private void showContextMenu(MouseEvent e) {
         TreePath path = getPathForLocation(e.getX(), e.getY());
@@ -151,100 +207,120 @@ public class DirectoryTree extends JTree {
 
         String filePath = getFilePathFromTreePath(path);
         File selectedFile = new File(filePath);
-        // Only show the context menu if the selected node represents a directory.
+        // Only show context menu for directories.
         if (!selectedFile.isDirectory()) {
             return;
         }
 
         JPopupMenu contextMenu = new JPopupMenu();
+        // Add "New File" menu item.
+        contextMenu.add(createMenuItem("New File", ae -> createNewFileInDirectory(selectedFile)));
+        // Add "New Directory" menu item.
+        contextMenu.add(createMenuItem("New Directory", ae -> createNewDirectoryInDirectory(selectedFile)));
 
-        // New File option
-        JMenuItem newFileItem = new JMenuItem("New File");
-        newFileItem.addActionListener(ae -> {
-            String fileName = JOptionPane.showInputDialog(DirectoryTree.this, "Enter new file name:");
-            if (fileName != null && !fileName.trim().isEmpty()) {
-                File newFile = new File(selectedFile, fileName);
-                try {
-                    boolean created = newFile.createNewFile();
-                    if (!created) {
-                        JOptionPane.showMessageDialog(DirectoryTree.this,
-                                "File already exists or could not be created.",
-                                "Error", JOptionPane.ERROR_MESSAGE);
-                    }
-                } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(DirectoryTree.this,
-                            "Error creating file: " + ex.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                refresh();
-            }
-        });
-        contextMenu.add(newFileItem);
-
-        // New Directory option
-        JMenuItem newDirItem = new JMenuItem("New Directory");
-        newDirItem.addActionListener(ae -> {
-            String dirName = JOptionPane.showInputDialog(DirectoryTree.this, "Enter new directory name:");
-            if (dirName != null && !dirName.trim().isEmpty()) {
-                File newDir = new File(selectedFile, dirName);
-                if (!newDir.mkdir()) {
-                    JOptionPane.showMessageDialog(DirectoryTree.this,
-                            "Could not create directory.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                refresh();
-            }
-        });
-        contextMenu.add(newDirItem);
-
-        // Prevent deletion or renaming of the root directory.
         boolean isRoot = selectedFile.equals(rootDirectory);
-
-        // Delete option
-        JMenuItem deleteItem = new JMenuItem("Delete");
+        // Add "Delete" menu item (disabled for root).
+        JMenuItem deleteItem = createMenuItem("Delete", ae -> deleteDirectoryWithConfirmation(selectedFile));
         deleteItem.setEnabled(!isRoot);
-        deleteItem.addActionListener(ae -> {
-            int confirm = JOptionPane.showConfirmDialog(DirectoryTree.this,
-                    "Are you sure you want to delete this directory and its contents?",
-                    "Confirm Delete", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
-                boolean success = deleteRecursively(selectedFile);
-                if (!success) {
-                    JOptionPane.showMessageDialog(DirectoryTree.this,
-                            "Could not delete directory.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                refresh();
-            }
-        });
         contextMenu.add(deleteItem);
 
-        // Rename option
-        JMenuItem renameItem = new JMenuItem("Rename");
+        // Add "Rename" menu item (disabled for root).
+        JMenuItem renameItem = createMenuItem("Rename", ae -> renameDirectory(selectedFile));
         renameItem.setEnabled(!isRoot);
-        renameItem.addActionListener(ae -> {
-            String newName = JOptionPane.showInputDialog(DirectoryTree.this,
-                    "Enter new name:", selectedFile.getName());
-            if (newName != null && !newName.trim().isEmpty()) {
-                File renamed = new File(selectedFile.getParent(), newName);
-                if (!selectedFile.renameTo(renamed)) {
-                    JOptionPane.showMessageDialog(DirectoryTree.this,
-                            "Could not rename directory.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                refresh();
-            }
-        });
         contextMenu.add(renameItem);
 
         contextMenu.show(this, e.getX(), e.getY());
     }
 
     /**
-     * Deletes a file or directory recursively.
+     * Creates a JMenuItem with the given text and action listener.
      *
-     * @param file The file or directory to delete.
-     * @return true if deletion was successful, false otherwise.
+     * @param text     the text for the menu item.
+     * @param listener the action listener to attach.
+     * @return the created JMenuItem.
+     */
+    private JMenuItem createMenuItem(String text, java.awt.event.ActionListener listener) {
+        JMenuItem item = new JMenuItem(text);
+        item.addActionListener(listener);
+        return item;
+    }
+
+    /**
+     * Prompts the user for a file name and creates a new file in the specified directory.
+     *
+     * @param directory the directory in which to create the file.
+     */
+    private void createNewFileInDirectory(File directory) {
+        String fileName = JOptionPane.showInputDialog(DirectoryTree.this, "Enter new file name:");
+        if (fileName != null && !fileName.trim().isEmpty()) {
+            File newFile = new File(directory, fileName);
+            try {
+                boolean created = newFile.createNewFile();
+                if (!created) {
+                    showError("File already exists or could not be created.");
+                }
+            } catch (IOException ex) {
+                showError("Error creating file: " + ex.getMessage());
+            }
+            refresh();
+        }
+    }
+
+    /**
+     * Prompts the user for a directory name and creates a new directory in the specified directory.
+     *
+     * @param directory the directory in which to create the new directory.
+     */
+    private void createNewDirectoryInDirectory(File directory) {
+        String dirName = JOptionPane.showInputDialog(DirectoryTree.this, "Enter new directory name:");
+        if (dirName != null && !dirName.trim().isEmpty()) {
+            File newDir = new File(directory, dirName);
+            if (!newDir.mkdir()) {
+                showError("Could not create directory.");
+            }
+            refresh();
+        }
+    }
+
+    /**
+     * Prompts the user for confirmation and deletes the specified directory (or file) recursively.
+     *
+     * @param file the file or directory to delete.
+     */
+    private void deleteDirectoryWithConfirmation(File file) {
+        int confirm = JOptionPane.showConfirmDialog(DirectoryTree.this,
+                "Are you sure you want to delete this directory and its contents?",
+                "Confirm Delete", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            boolean success = deleteRecursively(file);
+            if (!success) {
+                showError("Could not delete directory.");
+            }
+            refresh();
+        }
+    }
+
+    /**
+     * Prompts the user for a new name and renames the specified file or directory.
+     *
+     * @param file the file or directory to rename.
+     */
+    private void renameDirectory(File file) {
+        String newName = JOptionPane.showInputDialog(DirectoryTree.this, "Enter new name:", file.getName());
+        if (newName != null && !newName.trim().isEmpty()) {
+            File renamed = new File(file.getParent(), newName);
+            if (!file.renameTo(renamed)) {
+                showError("Could not rename directory.");
+            }
+            refresh();
+        }
+    }
+
+    /**
+     * Recursively deletes a file or directory.
+     *
+     * @param file the file or directory to delete.
+     * @return true if deletion was successful; false otherwise.
      */
     private boolean deleteRecursively(File file) {
         if (file.isDirectory()) {
@@ -261,10 +337,23 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * A TransferHandler that supports dragging files or directories from the tree and
-     * dropping them into other directories to move them.
+     * Displays an error message dialog with the specified message.
+     *
+     * @param message the error message to display.
+     */
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(DirectoryTree.this,
+                message, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    /* ========================= Drag and Drop Support ========================= */
+
+    /**
+     * A TransferHandler implementation for handling drag-and-drop of files and directories
+     * within the directory tree.
      */
     private class FileTransferHandler extends TransferHandler {
+
         @Override
         public int getSourceActions(JComponent c) {
             return MOVE;
@@ -281,12 +370,12 @@ public class DirectoryTree extends JTree {
         }
 
         @Override
-        public boolean canImport(TransferHandler.TransferSupport support) {
-            // Only support drops and string data (the file path)
+        public boolean canImport(TransferSupport support) {
+            // Only support drop actions with string data (file path)
             if (!support.isDrop() || !support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 return false;
             }
-            // Ensure drop location is a valid tree node representing a directory
+            // Check if the drop target is a directory.
             JTree.DropLocation dropLocation = (JTree.DropLocation) support.getDropLocation();
             TreePath targetPath = dropLocation.getPath();
             if (targetPath == null) {
@@ -298,7 +387,7 @@ public class DirectoryTree extends JTree {
         }
 
         @Override
-        public boolean importData(TransferHandler.TransferSupport support) {
+        public boolean importData(TransferSupport support) {
             if (!canImport(support)) {
                 return false;
             }
@@ -307,29 +396,25 @@ public class DirectoryTree extends JTree {
             String targetDirPath = getFilePathFromTreePath(targetPath);
             File targetDir = new File(targetDirPath);
 
-            Transferable t = support.getTransferable();
+            Transferable transferable = support.getTransferable();
             try {
-                String sourceFilePath = (String) t.getTransferData(DataFlavor.stringFlavor);
+                String sourceFilePath = (String) transferable.getTransferData(DataFlavor.stringFlavor);
                 File sourceFile = new File(sourceFilePath);
 
-                // Prevent dropping into itself or one of its descendants
+                // Prevent dropping into itself or its descendant.
                 if (targetDir.equals(sourceFile) || isChildOf(sourceFile, targetDir)) {
                     return false;
                 }
 
                 File destFile = new File(targetDir, sourceFile.getName());
                 if (destFile.exists()) {
-                    JOptionPane.showMessageDialog(DirectoryTree.this,
-                            "A file or directory with that name already exists in the target location.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                    showError("A file or directory with that name already exists in the target location.");
                     return false;
                 }
 
                 boolean success = sourceFile.renameTo(destFile);
                 if (!success) {
-                    JOptionPane.showMessageDialog(DirectoryTree.this,
-                            "Could not move the file/directory.",
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                    showError("Could not move the file/directory.");
                     return false;
                 }
                 refresh();
@@ -341,7 +426,11 @@ public class DirectoryTree extends JTree {
         }
 
         /**
-         * Helper method to check if 'child' is a descendant of 'parent'
+         * Checks if the child file is a descendant of the parent file.
+         *
+         * @param parent the potential parent file.
+         * @param child  the file to check.
+         * @return true if child is a descendant of parent; false otherwise.
          */
         private boolean isChildOf(File parent, File child) {
             try {

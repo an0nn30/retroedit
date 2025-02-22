@@ -2,17 +2,29 @@ package com.github.an0nn30.retroedit.ui;
 
 import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventType;
-import com.github.an0nn30.retroedit.logging.Logger;
 import com.github.an0nn30.retroedit.ui.components.DirectoryTree;
 import com.github.an0nn30.retroedit.ui.components.Terminal;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
 import com.github.an0nn30.retroedit.ui.search.SearchController;
 import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
 import com.jediterm.terminal.ui.JediTermWidget;
+import org.fife.rsta.ac.AbstractSourceTree;
+import org.fife.rsta.ac.LanguageSupport;
+import org.fife.rsta.ac.LanguageSupportFactory;
+import org.fife.rsta.ac.java.JavaLanguageSupport;
+import org.fife.rsta.ac.java.tree.JavaOutlineTree;
+import org.fife.rsta.ac.js.tree.JavaScriptOutlineTree;
+import org.fife.rsta.ac.xml.tree.XmlOutlineTree;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+
 import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+
+import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
 
 /**
  * The main editor frame for the Retro Edit application.
@@ -32,14 +44,17 @@ public class EditorFrame extends JFrame {
     private SearchController searchController;
     private int projectViewDividerLocation = 200;
     private int terminalViewDividerLocation = 150; // default initial value
+    private AbstractSourceTree sourceTree;
+    private JScrollPane treeSP;
+    LanguageSupportFactory lsf;
 
     /**
      * Constructs the EditorFrame and initializes the UI.
      */
     public EditorFrame() {
         super("Retro Edit");
-        ThemeManager.setupWindowFrame(this); // Apply theme first
 
+        ThemeManager.setupWindowFrame(this);
         SwingUtilities.invokeLater(() -> {
             initializeFrame();
             initializeComponents();
@@ -48,6 +63,7 @@ public class EditorFrame extends JFrame {
             startEditor();
             disableAllToolbars(this);
         });
+
     }
 
     /**
@@ -66,8 +82,11 @@ public class EditorFrame extends JFrame {
         tabManager = new TabManager(this);
         statusPanel = new StatusPanel(this);
         setJMenuBar(new MenuBar(this).getMenuBar());
+        JTree dummy = new JTree((TreeNode)null);
+        treeSP = new JScrollPane(dummy);
         directoryTree = new DirectoryTree(this);
         searchController = null; // Lazy-load search controller
+        lsf = LanguageSupportFactory.get();
 
         loadTerminalWidget();
     }
@@ -105,6 +124,7 @@ public class EditorFrame extends JFrame {
         projectEditorSplit = createProjectEditorSplit();
         addFixedDividerListenersToProject(projectEditorSplit);
 
+
         addComponentsToFrame();
 
         // Defer hiding views to prevent blocking UI
@@ -139,8 +159,6 @@ public class EditorFrame extends JFrame {
             if (isTerminalToggled) {
                 int newLocation = (Integer) evt.getNewValue();
                 if (newLocation > 1) {
-                    Logger.getInstance().info(this.getClass(),
-                            "Terminal panel new location: " + newLocation + " (old: " + terminalViewDividerLocation + ")");
                     terminalViewDividerLocation = newLocation;
                 }
             }
@@ -166,13 +184,13 @@ public class EditorFrame extends JFrame {
      * @return a configured JSplitPane for the project view and editor-terminal view.
      */
     private JSplitPane createProjectEditorSplit() {
-        JScrollPane treeScrollPane = new JScrollPane(directoryTree);
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, treeScrollPane, editorTerminalSplit);
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(directoryTree), treeSP);
+        JSplitPane split2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, split, editorTerminalSplit);
         // Remove automatic resizing by setting resize weight to 0.
-        split.setResizeWeight(0);
-        split.setOneTouchExpandable(true);
-        split.setContinuousLayout(true);
-        return split;
+        split2.setResizeWeight(0);
+        split2.setOneTouchExpandable(true);
+        split2.setContinuousLayout(true);
+        return split2;
     }
 
     /**
@@ -220,11 +238,13 @@ public class EditorFrame extends JFrame {
      */
     private void registerEventSubscriptions() {
         SwingUtilities.invokeLater(() -> {
-            EventBus.subscribe(EventType.TAB_UPDATED.name(), eventRecord ->
-                    setTitle(eventRecord.data().toString())
-            );
-            EventBus.subscribe(EventType.THEME_CHANGED.name(),
-                    eventRecord -> ThemeManager.updateInterfaceTheme(this, eventRecord));
+            EventBus.subscribe(EventType.TAB_UPDATED.name(), eventRecord -> {
+                refreshSourceTree();
+                setTitle(eventRecord.data().toString());
+            });
+            EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), eventRecord -> {
+                refreshSourceTree();
+            });
         });
     }
 
@@ -234,9 +254,9 @@ public class EditorFrame extends JFrame {
     private void startEditor() {
         SwingUtilities.invokeLater(() -> {
             tabManager.addNewTab("Untitled", new TextArea(this));
-            ThemeManager.updateInterfaceTheme(this, null);
             toggleTerminalView();
         });
+        ThemeManager.updateInterfaceTheme(this, null);
     }
 
     /**
@@ -290,7 +310,7 @@ public class EditorFrame extends JFrame {
         } else {
             // When collapsing, set a fixed minimal divider location.
             projectEditorSplit.setDividerLocation(1);
-            tabManager.requestFocus();
+            tabManager.getActiveTextArea().requestFocus();
         }
     }
 
@@ -307,7 +327,7 @@ public class EditorFrame extends JFrame {
             }
         } else {
             // When collapsing, use a fixed minimal divider location.
-            editorTerminalSplit.setDividerLocation(1);
+            editorTerminalSplit.setDividerLocation(editorTerminalSplit.getMaximumDividerLocation());
             tabManager.requestFocus();
         }
         System.out.println("Is terminal toggled: " + isTerminalToggled + " (old: " + terminalShowing + ")");
@@ -325,7 +345,7 @@ public class EditorFrame extends JFrame {
      */
     public void hideTerminal() {
         SwingUtilities.invokeLater(() ->
-                editorTerminalSplit.setDividerLocation(1)
+                editorTerminalSplit.setDividerLocation(editorTerminalSplit.getMaximumDividerLocation() + 100)
         );
     }
 
@@ -351,5 +371,39 @@ public class EditorFrame extends JFrame {
      */
     private void disableAllToolbars(JFrame frame) {
         disableFloatingToolbars(frame.getContentPane());
+    }
+
+    /**
+     * Displays a tree view of the current source code, if available for the
+     * current programming language.
+     */
+    public void refreshSourceTree() {
+        SwingUtilities.invokeLater(() -> {
+            if (sourceTree!= null) {
+                sourceTree.uninstall();
+            }
+
+            String language = tabManager.getActiveTextArea().getSyntaxEditingStyle();
+            switch (language) {
+                case SYNTAX_STYLE_JAVA ->  {
+                    sourceTree = new JavaOutlineTree();
+                    LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
+                    JavaLanguageSupport jls = (JavaLanguageSupport) support;
+                    support.install(tabManager.getActiveTextArea());
+                }
+                case SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT -> sourceTree = new JavaScriptOutlineTree();
+                case SyntaxConstants.SYNTAX_STYLE_XML -> sourceTree = new XmlOutlineTree();
+                case null, default -> sourceTree = null;
+            }
+
+            if (sourceTree != null) {
+                sourceTree.listenTo(tabManager.getActiveTextArea());
+                treeSP.setViewportView(sourceTree);
+            } else {
+                JTree dummy = new JTree((TreeNode) null);
+                treeSP.setViewportView(dummy);
+            }
+            treeSP.revalidate();
+        });
     }
 }

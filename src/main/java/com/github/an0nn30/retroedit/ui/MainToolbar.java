@@ -1,89 +1,123 @@
 package com.github.an0nn30.retroedit.ui;
 
-import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
-import com.github.an0nn30.retroedit.FileManagerUtil;
+import com.github.an0nn30.retroedit.ui.utils.FileManagerUtil;
 import com.github.an0nn30.retroedit.ui.components.Button;
 import com.github.an0nn30.retroedit.ui.components.Panel;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
+import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+/**
+ * MainToolbar is a custom toolbar component that extends Panel.
+ * It provides buttons for file operations such as New, Open, Save, and Refresh,
+ * as well as placeholders for navigation and execution controls.
+ */
 public class MainToolbar extends Panel {
 
     private final EditorFrame editorFrame;
 
+    /**
+     * Constructs a MainToolbar attached to the given EditorFrame.
+     * It installs the Flat IntelliJ Look and Feel and adds the toolbar buttons.
+     *
+     * @param editorFrame the parent EditorFrame.
+     */
     public MainToolbar(EditorFrame editorFrame) {
         super(editorFrame);
         this.editorFrame = editorFrame;
-        FlatIntelliJLaf.install();
-
         addComponent(initToolBar(), PanelPosition.LEFT);
-
     }
 
-    private JToolBar initToolBar() {
-        JToolBar toolBar = new JToolBar();
+    /**
+     * Initializes the toolbar panel by creating and adding toolbar buttons.
+     *
+     * @return a Panel containing all toolbar components.
+     */
+    private Panel initToolBar() {
+        // Common insets for most buttons.
+        final Insets commonInsets = new Insets(0, 0, 0, 0);
 
-        // Open: call FileManagerUtil with the Editor reference.
-        Button openButton = new Button(new FlatSVGIcon("icons/menu-open_dark.svg"), "openButton");
-        openButton.addActionListener(e -> FileManagerUtil.openFile(editorFrame));
+        // Create file operation buttons.
+        Button newButton = createButton("new", null, new Insets(0, 2, 0, 2), e ->
+                editorFrame.getTabManager().addNewTab("Untitled", new TextArea(editorFrame)));
 
-        // Save: call the TabManager’s save method directly.
-        JButton saveButton = new JButton(new FlatSVGIcon("icons/menu-saveall_dark.svg"));
-        saveButton.addActionListener(e -> editorFrame.getTabManager().saveFile(false));
+        Button openButton = createButton("open", "Open", commonInsets, e ->
+                FileManagerUtil.openFile(editorFrame));
 
-        // Refresh: re-read the active file.
-        JButton refreshButton = new JButton(new FlatSVGIcon("icons/refresh.svg"));
-        refreshButton.addActionListener(e -> {
-            TextArea textArea = editorFrame.getTabManager().getActiveTextArea();
-            File file = textArea.getActiveFile();
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                textArea.read(reader, null);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(editorFrame,
-                        "Error refreshing file",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        Button saveButton = createButton("save", "Save", commonInsets, e ->
+                editorFrame.getTabManager().saveFile(false));
 
-        // Other buttons (back, forward, build, etc.) remain as placeholders.
-        JButton backButton = new JButton(new FlatSVGIcon("icons/back.svg"));
+        Button refreshButton = createButton("refresh", "Refresh", commonInsets, e -> refreshActiveFile());
+
+        // Create placeholder navigation and execution buttons.
+        Button backButton = createButton("back", null, commonInsets, e -> {});
         backButton.setEnabled(false);
-        JButton forwardButton = new JButton(new FlatSVGIcon("icons/forward.svg"));
+        Button forwardButton = createButton("forward", null, commonInsets, e -> {});
         forwardButton.setEnabled(false);
-        JButton buildButton = new JButton(new FlatSVGIcon("icons/toolWindowBuild_dark.svg"));
-        buildButton.setEnabled(false);
         JComboBox<String> selectConfiguration = new JComboBox<>();
         selectConfiguration.setEnabled(false);
-        JButton runButton = new JButton(new FlatSVGIcon("icons/execute_dark.svg"));
+        Button runButton = createButton("run", null, commonInsets, e -> {});
         runButton.setEnabled(false);
-        JButton debugButton = new JButton(new FlatSVGIcon("icons/attachDebugger_dark.svg"));
-        debugButton.setEnabled(false);
-        JButton stopButton = new JButton(new FlatSVGIcon("icons/suspend.svg"));
+        Button stopButton = createButton("stop", null, commonInsets, e -> {});
         stopButton.setEnabled(false);
 
+        // Assemble the toolbar panel.
+        Panel toolbarPanel = new Panel(editorFrame, 0, 0);
+        toolbarPanel.addComponent(newButton, PanelPosition.LEFT);
+        toolbarPanel.addComponent(openButton, PanelPosition.LEFT);
+        toolbarPanel.addComponent(saveButton, PanelPosition.LEFT);
+        toolbarPanel.addComponent(refreshButton, PanelPosition.LEFT);
+        toolbarPanel.addComponent(backButton, PanelPosition.LEFT);
+        toolbarPanel.addComponent(forwardButton, PanelPosition.LEFT);
+        toolbarPanel.addComponent(selectConfiguration, PanelPosition.LEFT);
+        toolbarPanel.addComponent(runButton, PanelPosition.LEFT);
+        toolbarPanel.addComponent(stopButton, PanelPosition.LEFT);
 
+        return toolbarPanel;
+    }
 
+    /**
+     * Creates a toolbar button with the specified icon key, text, insets, and action listener.
+     * If the text parameter is null, the button will display only the icon.
+     *
+     * @param iconKey  the key to retrieve the icon from ThemeManager.icons.
+     * @param text     the text label to display on the button (can be null).
+     * @param insets   the Insets to use for the button.
+     * @param listener the ActionListener to attach to the button.
+     * @return a new Button instance.
+     */
+    private Button createButton(String iconKey, String text, Insets insets, java.awt.event.ActionListener listener) {
+        FlatSVGIcon icon = new FlatSVGIcon(ThemeManager.icons.get(iconKey), 18, 18);
+        Button button = new Button(icon, insets);
+        if (text != null) {
+            button.setText(text);
+        }
+        button.addActionListener(listener);
+        return button;
+    }
 
-        toolBar.add(openButton);
-        toolBar.add(saveButton);
-        toolBar.add(refreshButton);
-        toolBar.addSeparator();
-        toolBar.add(backButton);
-        toolBar.add(forwardButton);
-        toolBar.addSeparator();
-        toolBar.add(buildButton);
-        toolBar.add(selectConfiguration);
-        toolBar.add(runButton);
-        toolBar.add(debugButton);
-        toolBar.add(stopButton);
-
-        return toolBar;
+    /**
+     * Refreshes the active file in the currently selected tab by re-reading its content.
+     */
+    private void refreshActiveFile() {
+        TextArea textArea = editorFrame.getTabManager().getActiveTextArea();
+        if (textArea == null) return;
+        File file = textArea.getActiveFile();
+        if (file == null) return;
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            textArea.read(reader, null);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(editorFrame,
+                    "Error refreshing file",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
