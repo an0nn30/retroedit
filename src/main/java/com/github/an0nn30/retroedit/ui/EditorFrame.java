@@ -38,10 +38,10 @@ public class EditorFrame extends JFrame {
     private DirectoryTree directoryTree;
     private JediTermWidget terminal;
     private boolean isProjectViewToggled = false;
-    private boolean isTerminalToggled = false;
+    private boolean isTerminalToggled = false; // false means terminal is minimized/hidden
     private SearchController searchController;
     private int projectViewDividerLocation = 200;
-    private int terminalViewDividerLocation = 150; // default initial value
+    private int terminalViewDividerLocation = 150; // default initial value when expanded
     private AbstractSourceTree sourceTree;
     private JScrollPane treeSP;
     LanguageSupportFactory lsf;
@@ -153,7 +153,6 @@ public class EditorFrame extends JFrame {
         // Update stored divider when the user moves it while terminal is expanded.
         split.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, evt -> {
             System.out.println("Terminal view divider location: " + evt.getNewValue() + " (old: " + terminalViewDividerLocation + ")");
-            System.out.println("Maximum: " + split.getMaximumDividerLocation() + " (old: " + terminalViewDividerLocation + ")");
             if (isTerminalToggled) {
                 int newLocation = (Integer) evt.getNewValue();
                 if (newLocation > 1) {
@@ -169,7 +168,7 @@ public class EditorFrame extends JFrame {
                 if (isTerminalToggled) {
                     split.setDividerLocation(terminalViewDividerLocation);
                 } else {
-                    // Collapse the terminal by setting the divider at the bottom.
+                    // Collapse the terminal by computing its minimized position.
                     split.setDividerLocation(split.getHeight() - split.getDividerSize());
                 }
             }
@@ -183,9 +182,10 @@ public class EditorFrame extends JFrame {
      */
     private JSplitPane createProjectEditorSplit() {
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, new JScrollPane(directoryTree), treeSP);
+        split.setResizeWeight(0.8);
         JSplitPane split2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, split, editorTerminalSplit);
         // Remove automatic resizing by setting resize weight to 0.
-        split2.setResizeWeight(0);
+        split2.setResizeWeight(1);
         split2.setOneTouchExpandable(true);
         split2.setContinuousLayout(true);
         return split2;
@@ -248,11 +248,13 @@ public class EditorFrame extends JFrame {
 
     /**
      * Starts the editor by adding an initial tab and applying theme settings.
+     * Note: The terminal will start in the minimized (hidden) state.
      */
     private void startEditor() {
         SwingUtilities.invokeLater(() -> {
             tabManager.addNewTab("Untitled", new TextArea(this));
-            toggleTerminalView();
+            // Instead of toggling the terminal view (which would show it), we keep it minimized.
+            hideTerminal();
         });
         ThemeManager.updateInterfaceTheme(this, null);
     }
@@ -339,12 +341,14 @@ public class EditorFrame extends JFrame {
     }
 
     /**
-     * Hides the terminal view by setting its divider location to collapse the terminal.
+     * Hides (minimizes) the terminal view by setting its divider location dynamically.
+     * Also updates the terminal state flag to indicate it is hidden.
      */
     public void hideTerminal() {
+        isTerminalToggled = false;
         SwingUtilities.invokeLater(() -> {
-            System.out.println("Hiding terminal: " + terminalShowing);
-            editorTerminalSplit.setDividerLocation(editorTerminalSplit.getHeight() - editorTerminalSplit.getDividerSize());
+            int minimizedLocation = editorTerminalSplit.getHeight() - editorTerminalSplit.getDividerSize();
+            editorTerminalSplit.setDividerLocation(minimizedLocation);
         });
     }
 
