@@ -15,8 +15,6 @@ import org.fife.rsta.ac.java.JavaLanguageSupport;
 import org.fife.rsta.ac.java.tree.JavaOutlineTree;
 import org.fife.rsta.ac.js.tree.JavaScriptOutlineTree;
 import org.fife.rsta.ac.xml.tree.XmlOutlineTree;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
