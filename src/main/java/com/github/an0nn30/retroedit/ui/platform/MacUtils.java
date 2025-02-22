@@ -14,8 +14,8 @@ public class MacUtils {
                 frame.getRootPane().putClientProperty("apple.awt.application.name", "Editor");
                 frame.getRootPane().putClientProperty("apple.awt.fullWindowContent", true);
                 frame.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true);
-                frame.getRootPane().putClientProperty("apple.awt.fullWindowContent", true );
-                frame.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true );
+//                frame.getRootPane().putClientProperty("apple.awt.fullWindowContent", true );
+//                frame.getRootPane().putClientProperty("apple.awt.transparentTitleBar", true );
 //                frame.getRootPane().putClientProperty("apple.awt.windowButtons", new Object());
                 //rootPane.putClientProperty( FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING, FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_MEDIUM );
 

@@ -61,7 +61,6 @@ public class EditorFrame extends JFrame {
             startEditor();
             disableAllToolbars(this);
         });
-
     }
 
     /**
@@ -80,7 +79,7 @@ public class EditorFrame extends JFrame {
         tabManager = new TabManager(this);
         statusPanel = new StatusPanel(this);
         setJMenuBar(new MenuBar(this).getMenuBar());
-        JTree dummy = new JTree((TreeNode)null);
+        JTree dummy = new JTree((TreeNode) null);
         treeSP = new JScrollPane(dummy);
         directoryTree = new DirectoryTree(this);
         searchController = null; // Lazy-load search controller
@@ -153,6 +152,8 @@ public class EditorFrame extends JFrame {
     private void addFixedDividerListenersToTerminal(JSplitPane split) {
         // Update stored divider when the user moves it while terminal is expanded.
         split.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, evt -> {
+            System.out.println("Terminal view divider location: " + evt.getNewValue() + " (old: " + terminalViewDividerLocation + ")");
+            System.out.println("Maximum: " + split.getMaximumDividerLocation() + " (old: " + terminalViewDividerLocation + ")");
             if (isTerminalToggled) {
                 int newLocation = (Integer) evt.getNewValue();
                 if (newLocation > 1) {
@@ -168,8 +169,8 @@ public class EditorFrame extends JFrame {
                 if (isTerminalToggled) {
                     split.setDividerLocation(terminalViewDividerLocation);
                 } else {
-                    // Use a fixed minimal value when collapsed.
-                    split.setDividerLocation(1);
+                    // Collapse the terminal by setting the divider at the bottom.
+                    split.setDividerLocation(split.getHeight() - split.getDividerSize());
                 }
             }
         });
@@ -323,11 +324,11 @@ public class EditorFrame extends JFrame {
                 terminal.requestFocus();
             }
         } else {
-            // When collapsing, use a fixed minimal divider location.
-            editorTerminalSplit.setDividerLocation(editorTerminalSplit.getMaximumDividerLocation());
+            // When collapsing, set divider location so that the top component occupies full height.
+            editorTerminalSplit.setDividerLocation(editorTerminalSplit.getHeight() - editorTerminalSplit.getDividerSize());
             tabManager.requestFocus();
         }
-        System.out.println("Is terminal toggled: " + isTerminalToggled + " (old: " + terminalShowing + ")");
+        System.out.println("Is terminal toggled: " + isTerminalToggled);
     }
 
     /**
@@ -338,12 +339,13 @@ public class EditorFrame extends JFrame {
     }
 
     /**
-     * Hides the terminal view by setting its divider location to a minimal value.
+     * Hides the terminal view by setting its divider location to collapse the terminal.
      */
     public void hideTerminal() {
-        SwingUtilities.invokeLater(() ->
-                editorTerminalSplit.setDividerLocation(editorTerminalSplit.getMaximumDividerLocation() + 100)
-        );
+        SwingUtilities.invokeLater(() -> {
+            System.out.println("Hiding terminal: " + terminalShowing);
+            editorTerminalSplit.setDividerLocation(editorTerminalSplit.getHeight() - editorTerminalSplit.getDividerSize());
+        });
     }
 
     /**
@@ -382,14 +384,16 @@ public class EditorFrame extends JFrame {
 
             String language = tabManager.getActiveTextArea().getSyntaxEditingStyle();
             switch (language) {
-                case SYNTAX_STYLE_JAVA ->  {
+                case SYNTAX_STYLE_JAVA -> {
                     sourceTree = new JavaOutlineTree();
                     LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
                     JavaLanguageSupport jls = (JavaLanguageSupport) support;
                     support.install(tabManager.getActiveTextArea());
                 }
-                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT -> sourceTree = new JavaScriptOutlineTree();
-                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML -> sourceTree = new XmlOutlineTree();
+                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT ->
+                        sourceTree = new JavaScriptOutlineTree();
+                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML ->
+                        sourceTree = new XmlOutlineTree();
                 case null, default -> sourceTree = null;
             }
 
