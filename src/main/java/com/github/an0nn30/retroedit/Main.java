@@ -20,17 +20,9 @@ public class Main {
      */
     public static void main(String[] args) {
         Settings.initialize();
-        var settings = Settings.getInstance();
-//        switch (settings.getInterfaceTheme()) {
-//            case "Light":
-//                System.setProperty("apple.awt.application.appearance", "NSAppearanceNameAqua");
-//                break;
-//            case "Dark":
-                System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua");
-//                break;
-//        }
 
-        // Load and set the custom interface font before installing the Look and Feel.
+        System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua");
+
 //        loadAndSetInterfaceFont();
 
         new EditorFrame().setVisible(true);

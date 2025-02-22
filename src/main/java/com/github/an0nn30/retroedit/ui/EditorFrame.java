@@ -124,7 +124,6 @@ public class EditorFrame extends JFrame {
         projectEditorSplit = createProjectEditorSplit();
         addFixedDividerListenersToProject(projectEditorSplit);
 
-
         addComponentsToFrame();
 
         // Defer hiding views to prevent blocking UI
@@ -379,7 +378,7 @@ public class EditorFrame extends JFrame {
      */
     public void refreshSourceTree() {
         SwingUtilities.invokeLater(() -> {
-            if (sourceTree!= null) {
+            if (sourceTree != null) {
                 sourceTree.uninstall();
             }
 
@@ -391,8 +390,8 @@ public class EditorFrame extends JFrame {
                     JavaLanguageSupport jls = (JavaLanguageSupport) support;
                     support.install(tabManager.getActiveTextArea());
                 }
-                case SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT -> sourceTree = new JavaScriptOutlineTree();
-                case SyntaxConstants.SYNTAX_STYLE_XML -> sourceTree = new XmlOutlineTree();
+                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT -> sourceTree = new JavaScriptOutlineTree();
+                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML -> sourceTree = new XmlOutlineTree();
                 case null, default -> sourceTree = null;
             }
 

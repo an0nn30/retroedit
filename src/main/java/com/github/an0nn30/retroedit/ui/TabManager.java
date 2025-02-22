@@ -10,7 +10,6 @@ import com.github.an0nn30.retroedit.ui.components.TextArea;
 import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
 import com.github.an0nn30.retroedit.ui.utils.FileUtils;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
-import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
@@ -38,6 +37,9 @@ public class TabManager extends JTabbedPane {
         super(SwingConstants.TOP);
         this.editorFrame = editorFrame;
         subscribeToTabUpdateEvents();
+
+        // Add a listener to refresh the source tree on tab selection changes.
+        addChangeListener(e -> editorFrame.refreshSourceTree());
     }
 
     /**
@@ -88,7 +90,7 @@ public class TabManager extends JTabbedPane {
         }
         try (InputStream is = getClass().getResourceAsStream(themePath)) {
             if (is != null) {
-                Theme theme = Theme.load(is);
+                org.fife.ui.rsyntaxtextarea.Theme theme = org.fife.ui.rsyntaxtextarea.Theme.load(is);
                 theme.apply(textArea);
             } else {
                 Logger.getInstance().error(getClass(), "Theme resource not found: " + themePath);
@@ -99,12 +101,12 @@ public class TabManager extends JTabbedPane {
     }
 
     /**
-     * Configures the TextArea with syntax settings, code folding, font settings, and a document listener for modifications.
+     * Configures the TextArea with code folding, font settings, and a document listener for modifications.
      *
      * @param textArea the TextArea to be configured.
      */
     private void configureTextArea(TextArea textArea) {
-        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+        // No need to set the syntax style here; let TextArea handle it internally.
         textArea.setCodeFoldingEnabled(true);
         textArea.initFontSizeAndFamily();
         attachModificationListener(textArea);
@@ -233,11 +235,8 @@ public class TabManager extends JTabbedPane {
     private void openFileInNewTab(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             TextArea newTextArea = createTextArea();
-            newTextArea.setActiveFile(file);
+            newTextArea.setActiveFile(file);  // This call updates the syntax style internally.
             newTextArea.read(reader, null);
-
-            String syntax = determineSyntaxFromFile(file);
-            EventBus.publish(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), syntax, this);
 
             if (shouldReplaceCurrentTab()) {
                 replaceCurrentTab(file.getName(), newTextArea);
@@ -249,32 +248,6 @@ public class TabManager extends JTabbedPane {
             JOptionPane.showMessageDialog(editorFrame, "Error opening file",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    /**
-     * Determines the syntax style for a file based on its extension.
-     *
-     * @param file the file whose extension will be used.
-     * @return the syntax style constant.
-     */
-    private String determineSyntaxFromFile(File file) {
-        String extension = getFileExtension(file);
-        return Constants.supportedFileTypes.getOrDefault(extension, SyntaxConstants.SYNTAX_STYLE_NONE);
-    }
-
-    /**
-     * Returns the file extension for the given file.
-     *
-     * @param file the file from which to extract the extension.
-     * @return the file extension as a String, or an empty string if none exists.
-     */
-    private String getFileExtension(File file) {
-        String name = file.getName();
-        int dotIndex = name.lastIndexOf('.');
-        if (dotIndex != -1 && dotIndex < name.length() - 1) {
-            return name.substring(dotIndex + 1);
-        }
-        return "";
     }
 
     /**
