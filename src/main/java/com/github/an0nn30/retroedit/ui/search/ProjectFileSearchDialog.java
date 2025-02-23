@@ -98,6 +98,8 @@ public class ProjectFileSearchDialog extends JDialog {
                     // Move focus to the file list.
                     fileList.requestFocusInWindow();
                     fileList.setSelectedIndex(0);
+                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                    dispose();
                 }
             }
         });
