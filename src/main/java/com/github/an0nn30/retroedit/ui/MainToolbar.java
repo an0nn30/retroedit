@@ -68,6 +68,8 @@ public class MainToolbar extends Panel {
         Button stopButton = createButton("stop", null, commonInsets, e -> {});
         stopButton.setEnabled(false);
 
+        Button toggleTerminalButton = createButton("terminal", null, commonInsets, e -> editorFrame.toggleTerminalView());
+
         // Assemble the toolbar panel.
         Panel toolbarPanel = new Panel(editorFrame, 0, 0);
         toolbarPanel.addComponent(newButton, PanelPosition.LEFT);
@@ -79,6 +81,8 @@ public class MainToolbar extends Panel {
         toolbarPanel.addComponent(selectConfiguration, PanelPosition.LEFT);
         toolbarPanel.addComponent(runButton, PanelPosition.LEFT);
         toolbarPanel.addComponent(stopButton, PanelPosition.LEFT);
+
+        toolbarPanel.addComponent(toggleTerminalButton, PanelPosition.RIGHT);
 
         return toolbarPanel;
     }

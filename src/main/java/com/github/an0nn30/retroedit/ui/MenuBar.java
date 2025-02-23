@@ -165,11 +165,6 @@ public class MenuBar {
                 e -> editorFrame.getTabManager().adjustFontSize(-2));
         viewMenu.add(decreaseFontSize);
 
-        // Toggle Status Bar menu item.
-        JMenuItem toggleStatusBar = createMenuItem("Toggle Status Bar", null,
-                e -> editorFrame.getStatusPanel().toggle());
-        viewMenu.add(toggleStatusBar);
-
         // Previous Tab menu item.
         JMenuItem prevTab = createMenuItem("Previous Tab",
                 KeyStroke.getKeyStroke(KeyEvent.VK_OPEN_BRACKET,

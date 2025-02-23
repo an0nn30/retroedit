@@ -29,10 +29,8 @@ import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
  */
 public class EditorFrame extends JFrame {
 
-    private boolean terminalShowing = true;
     private MainToolbar mainToolbar;
     private TabManager tabManager;
-    private StatusPanel statusPanel;
     private JSplitPane projectEditorSplit;
     private JSplitPane editorTerminalSplit;
     private DirectoryTree directoryTree;
@@ -77,7 +75,6 @@ public class EditorFrame extends JFrame {
     private void initializeComponents() {
         mainToolbar = new MainToolbar(this);
         tabManager = new TabManager(this);
-        statusPanel = new StatusPanel(this);
         setJMenuBar(new MenuBar(this).getMenuBar());
         JTree dummy = new JTree((TreeNode) null);
         treeSP = new JScrollPane(dummy);
@@ -122,6 +119,7 @@ public class EditorFrame extends JFrame {
         addFixedDividerListenersToProject(projectEditorSplit);
 
         addComponentsToFrame();
+        
 
         // Defer hiding views to prevent blocking UI
         SwingUtilities.invokeLater(() -> {
@@ -228,7 +226,6 @@ public class EditorFrame extends JFrame {
         setLayout(new BorderLayout());
         add(mainToolbar, BorderLayout.NORTH);
         add(projectEditorSplit, BorderLayout.CENTER);
-        add(statusPanel, BorderLayout.SOUTH);
     }
 
     /**
@@ -280,14 +277,6 @@ public class EditorFrame extends JFrame {
         return tabManager;
     }
 
-    /**
-     * Returns the status panel.
-     *
-     * @return the StatusPanel instance.
-     */
-    public StatusPanel getStatusPanel() {
-        return statusPanel;
-    }
 
     /**
      * Returns the directory tree.
@@ -387,18 +376,18 @@ public class EditorFrame extends JFrame {
             }
 
             String language = tabManager.getActiveTextArea().getSyntaxEditingStyle();
-            switch (language) {
-                case SYNTAX_STYLE_JAVA -> {
-                    sourceTree = new JavaOutlineTree();
-                    LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
-                    JavaLanguageSupport jls = (JavaLanguageSupport) support;
-                    support.install(tabManager.getActiveTextArea());
-                }
-                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT ->
-                        sourceTree = new JavaScriptOutlineTree();
-                case org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML ->
-                        sourceTree = new XmlOutlineTree();
-                case null, default -> sourceTree = null;
+
+            if (SYNTAX_STYLE_JAVA.equals(language)) {
+                sourceTree = new JavaOutlineTree();
+                LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
+                JavaLanguageSupport jls = (JavaLanguageSupport) support;
+                support.install(tabManager.getActiveTextArea());
+            } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT.equals(language)) {
+                sourceTree = new JavaScriptOutlineTree();
+            } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML.equals(language)) {
+                sourceTree = new XmlOutlineTree();
+            } else {
+                sourceTree = null;
             }
 
             if (sourceTree != null) {
