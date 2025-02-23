@@ -21,9 +21,10 @@ public class Main {
     public static void main(String[] args) {
         Settings.initialize();
 
-        System.setProperty("apple.awt.application.appearance", "NSAppearanceNameDarkAqua");
+        System.setProperty("apple.awt.application.appearance", "NSAppearanceNameAqua");
 
 //        loadAndSetInterfaceFont();
+
 
         new EditorFrame().setVisible(true);
     }

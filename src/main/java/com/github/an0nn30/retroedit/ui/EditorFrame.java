@@ -21,6 +21,8 @@ import javax.swing.tree.TreeNode;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 
 import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
 
@@ -49,6 +51,23 @@ public class EditorFrame extends JFrame {
      */
     public EditorFrame() {
         super("Retro Edit");
+
+        // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
+        // even if the terminal widget currently has focus.
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent e) {
+                if (e.getID() == KeyEvent.KEY_PRESSED) {
+                    int expectedModifiers = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK;
+                    if (e.getKeyCode() == KeyEvent.VK_COMMA &&
+                            (e.getModifiersEx() & expectedModifiers) == expectedModifiers) {
+                        toggleTerminalView();
+                        return true; // Consume the event so that it does not reach the terminal widget.
+                    }
+                }
+                return false;
+            }
+        });
 
         ThemeManager.setupWindowFrame(this);
         SwingUtilities.invokeLater(() -> {
@@ -119,7 +138,6 @@ public class EditorFrame extends JFrame {
         addFixedDividerListenersToProject(projectEditorSplit);
 
         addComponentsToFrame();
-        
 
         // Defer hiding views to prevent blocking UI
         SwingUtilities.invokeLater(() -> {
@@ -277,7 +295,6 @@ public class EditorFrame extends JFrame {
         return tabManager;
     }
 
-
     /**
      * Returns the directory tree.
      *
@@ -317,7 +334,7 @@ public class EditorFrame extends JFrame {
         } else {
             // When collapsing, set divider location so that the top component occupies full height.
             editorTerminalSplit.setDividerLocation(editorTerminalSplit.getHeight() - editorTerminalSplit.getDividerSize());
-            tabManager.requestFocus();
+            tabManager.getActiveTextArea().requestFocus();
         }
         System.out.println("Is terminal toggled: " + isTerminalToggled);
     }

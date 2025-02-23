@@ -142,8 +142,7 @@ public class MenuBar {
                 KeyStroke.getKeyStroke(KeyEvent.VK_COMMA,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK),
                 e -> {
-                    // Uncomment and implement terminal toggle if needed.
-                    // editorFrame.getSplitPane().toggleTerminal();
+                     editorFrame.toggleTerminalView();
                 });
         viewMenu.add(toggleTerminal);
 
