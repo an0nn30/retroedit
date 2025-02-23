@@ -52,8 +52,8 @@ public class ThemeManager {
     public static void setupWindowFrame(EditorFrame frame) {
         try {
             UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-//            frame.setUndecorated(true);
-//            frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
+            frame.setUndecorated(true);
+            frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         } catch (Exception e) {
             Logger.getInstance().error(ThemeManager.class, "Failed to set LookAndFeel: " + e.getMessage());
             e.printStackTrace();
