@@ -15,5 +15,6 @@ public class Constants {
         supportedFileTypes.put("cpp", SyntaxConstants.SYNTAX_STYLE_CPLUSPLUS);
         supportedFileTypes.put("json", SyntaxConstants.SYNTAX_STYLE_JSON);
         supportedFileTypes.put("go", SyntaxConstants.SYNTAX_STYLE_GO);
+        supportedFileTypes.put("yaml", SyntaxConstants.SYNTAX_STYLE_YAML);
     }
 }
