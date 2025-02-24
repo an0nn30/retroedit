@@ -2,7 +2,8 @@
 # Extract the version from pom.xml.
 # If xmllint isn't available on your system, you could instead use:
 # VERSION := $(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' pom.xml | head -n 1)
-VERSION := $(shell xmllint --xpath "/*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
+# Extract the version from pom.xml using sed (xmllint may not be available on Linux)
+VERSION := $(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' pom.xml | head -n 1)
 
 # Variables
 APP_NAME = RetroEdit
@@ -10,6 +11,7 @@ MAIN_JAR = retroedit-$(VERSION)-jar-with-dependencies.jar
 MAIN_CLASS = com.github.an0nn30.retroedit.Main
 ICON_PATH_MAC = src/main/resources/retro_edit_mac_icns.icns
 ICON_PATH_WIN= src/main/resources/retro.ico
+ICON_PATH_LINUX= src/main/resources/retroedit.png
 APP_VERSION = $(VERSION)
 VENDOR = "An0nn30"
 OUTPUT_DIR = output/
@@ -42,6 +44,22 @@ deploy: jar
 	  --dest $(OUTPUT_DIR) \
 	  --verbose
 
+.PHONY: deb
+deb: jar
+	rm -rf $(OUTPUT_DIR) && \
+	jpackage --type deb \
+	  --name $(APP_NAME) \
+	  --input $(TARGET_DIR) \
+	  --main-jar $(MAIN_JAR) \
+	  --main-class $(MAIN_CLASS) \
+	  --app-version $(APP_VERSION) \
+	  --vendor $(VENDOR) \
+	  --icon $(ICON_PATH_LINUX) \
+	  --linux-shortcut \
+	  --resource-dir linux/ \
+	  --dest $(OUTPUT_DIR) \
+	  --verbose
+
 # Sign the application with Apple's Developer ID
 #.PHONY: sign
 #sign: deploy
@@ -67,7 +85,7 @@ exe:
 	  --name $(APP_NAME) \
 	  --app-image $(APP_PATH) \
 	  --icon $(ICON_PATH_WIN) \
-	  --app-version $(APP_VERSION) \
+	  --app-version $(APP_VERSION)\
 	  --vendor $(VENDOR) \
 	  --dest $(OUTPUT_DIR) \
 	  --verbose
@@ -80,3 +98,4 @@ exe:
 clean:
 	mvn clean
 	rm -rf $(OUTPUT_DIR)
+

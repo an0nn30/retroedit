@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=RetroEdit
+Comment=An editor application for development
+Exec=/opt/RetroEdit/RetroEdit
+Icon=/opt/RetroEdit/retroedit.png
+Terminal=false
+Categories=Development;
