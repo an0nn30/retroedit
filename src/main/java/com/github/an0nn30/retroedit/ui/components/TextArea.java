@@ -1,5 +1,7 @@
 package com.github.an0nn30.retroedit.ui.components;
 
+import com.github.an0nn30.retroedit.event.EventBus;
+import com.github.an0nn30.retroedit.event.EventType;
 import com.github.an0nn30.retroedit.logging.Logger;
 import com.github.an0nn30.retroedit.settings.Settings;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
@@ -16,9 +18,11 @@ public class TextArea extends RSyntaxTextArea {
 
     public TextArea(EditorFrame editorFrame) {
         super();
+        setTabSize(4);
         // Initially, no file is associated so default to none.
         setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
         applyTheme(Settings.getInstance().getInterfaceTheme());
+        subscibeToEvents();
     }
 
     /**
@@ -85,5 +89,9 @@ public class TextArea extends RSyntaxTextArea {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void subscibeToEvents() {
+        EventBus.subscribe(EventType.THEME_CHANGED.name(), e -> applyTheme(e.data().toString()));
     }
 }

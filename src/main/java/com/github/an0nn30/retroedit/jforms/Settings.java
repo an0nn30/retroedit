@@ -1,5 +1,7 @@
 package com.github.an0nn30.retroedit.jforms;
 
+import com.github.an0nn30.retroedit.event.EventBus;
+import com.github.an0nn30.retroedit.event.EventType;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -53,6 +55,7 @@ public class Settings extends JDialog {
         colorThemeComboBox.addItem("Retro");
         colorThemeComboBox.setSelectedItem(com.github.an0nn30.retroedit.settings.Settings.getInstance().getInterfaceTheme());
         colorThemeComboBox.addActionListener(e -> {
+//            EventBus.publish(EventType.THEME_CHANGED.name(), colorThemeComboBox.getSelectedItem(), this);
 
         });
 
