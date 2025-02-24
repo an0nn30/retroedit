@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.regex.Pattern;
 
 /**
  * A JTree component that displays a directory structure.
@@ -460,5 +461,68 @@ public class DirectoryTree extends JTree {
      */
     public File getRootDirectory() {
         return this.rootDirectory;
+    }
+
+    /**
+     * Selects and expands the tree node corresponding to the specified file,
+     * if that file exists under the current project (i.e. the root directory).
+     *
+     * @param file the file to select in the tree.
+     */
+    public void selectFile(File file) {
+        if (rootDirectory == null) {
+            return;
+        }
+        try {
+            String rootPath = rootDirectory.getCanonicalPath();
+            String filePath = file.getCanonicalPath();
+            // Only reveal files within the project
+            if (!filePath.startsWith(rootPath)) {
+                return;
+            }
+            // Build the relative path parts (e.g. for "project/src/Main.java", parts would be ["src", "Main.java"])
+            String relativePath = filePath.substring(rootPath.length());
+            if (relativePath.startsWith(File.separator)) {
+                relativePath = relativePath.substring(1);
+            }
+            String[] pathParts = relativePath.isEmpty() ? new String[0] : relativePath.split(Pattern.quote(File.separator));
+            // Start with the root node (which represents the project root)
+            DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
+            TreePath treePath = new TreePath(rootNode);
+            // Recursively search for the file node.
+            treePath = findTreePath(rootNode, pathParts, 0);
+            if (treePath != null) {
+                setSelectionPath(treePath);
+                scrollPathToVisible(treePath);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Recursively searches for a TreePath matching the provided path parts.
+     *
+     * @param node      the current node to search.
+     * @param pathParts an array of directory/file names representing the relative path.
+     * @param index     the current index in the path parts.
+     * @return the TreePath if found; otherwise, null.
+     */
+    private TreePath findTreePath(DefaultMutableTreeNode node, String[] pathParts, int index) {
+        // If all parts have been matched, return the TreePath for this node.
+        if (index >= pathParts.length) {
+            return new TreePath(node.getPath());
+        }
+        // Look for a child node with a matching name.
+        for (int i = 0; i < node.getChildCount(); i++) {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
+            if (child.getUserObject().toString().equals(pathParts[index])) {
+                TreePath path = findTreePath(child, pathParts, index + 1);
+                if (path != null) {
+                    return path;
+                }
+            }
+        }
+        return null;
     }
 }

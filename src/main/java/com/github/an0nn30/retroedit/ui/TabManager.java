@@ -39,7 +39,17 @@ public class TabManager extends JTabbedPane {
         subscribeToTabUpdateEvents();
 
         // Add a listener to refresh the source tree on tab selection changes.
-        addChangeListener(e -> editorFrame.refreshSourceTree());
+        addChangeListener(e -> {
+            editorFrame.refreshSourceTree();
+            TextArea activeTextArea = getActiveTextArea();
+            if (activeTextArea != null) {
+                File currentFile = FileUtils.getCurrentFile(activeTextArea);
+                if (currentFile != null && editorFrame.getDirectoryTree() != null
+                        && editorFrame.getDirectoryTree().getRootDirectory() != null) {
+                    editorFrame.getDirectoryTree().selectFile(currentFile);
+                }
+            }
+        });
     }
 
     /**
@@ -170,6 +180,8 @@ public class TabManager extends JTabbedPane {
     /**
      * Opens a file in a new tab, or selects the tab if the file is already open.
      *
+     * Additionally, if a project is open, the DirectoryTree will expand and select the opened file.
+     *
      * @param file the file to open.
      */
     public void openFile(File file) {
@@ -178,6 +190,11 @@ public class TabManager extends JTabbedPane {
         if (checkAndSelectIfFileAlreadyOpen(file)) return;
         openFileInNewTab(file);
         requestFocusOnActiveTextArea();
+        // Automatically update the DirectoryTree selection if a project is open.
+        if (editorFrame.getDirectoryTree() != null
+                && editorFrame.getDirectoryTree().getRootDirectory() != null) {
+            editorFrame.getDirectoryTree().selectFile(file);
+        }
     }
 
     /**
