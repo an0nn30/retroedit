@@ -15,6 +15,7 @@ import org.fife.rsta.ac.java.JavaLanguageSupport;
 import org.fife.rsta.ac.java.tree.JavaOutlineTree;
 import org.fife.rsta.ac.js.tree.JavaScriptOutlineTree;
 import org.fife.rsta.ac.xml.tree.XmlOutlineTree;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
@@ -23,6 +24,10 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
 
@@ -410,5 +415,46 @@ public class EditorFrame extends JFrame {
             }
             treeSP.revalidate();
         });
+    }
+
+
+    /**
+     * Opens a file from the given file path by reading its contents,
+     * setting the syntax style based on the file extension, and adding
+     * a new tab with the file's name as the title.
+     *
+     * @param filePath the path of the file to open.
+     */
+    public void openFile(String filePath) {
+        try {
+            Path path = Paths.get(filePath);
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            // Create a new TextArea and set its text to the file content.
+            TextArea textArea = new TextArea(this);
+            textArea.setText(content);
+
+            // Determine the syntax style based on the file extension.
+            String fileName = path.getFileName().toString().toLowerCase();
+            if (fileName.endsWith(".java")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+            } else if (fileName.endsWith(".js")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+            } else if (fileName.endsWith(".xml")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
+            } else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
+            } else if (fileName.endsWith(".py")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+            } else {
+                // Default to plain text if no known file type is detected.
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+            }
+
+            // Add a new tab using the file name as the tab title.
+            tabManager.addNewTab(fileName, textArea);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error opening file: " + ex.getMessage(),
+                    "File Open Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }
