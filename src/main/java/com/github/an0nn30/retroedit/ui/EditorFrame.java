@@ -54,19 +54,16 @@ public class EditorFrame extends JFrame {
 
         // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
         // even if the terminal widget currently has focus.
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
-            @Override
-            public boolean dispatchKeyEvent(KeyEvent e) {
-                if (e.getID() == KeyEvent.KEY_PRESSED) {
-                    int expectedModifiers = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK;
-                    if (e.getKeyCode() == KeyEvent.VK_COMMA &&
-                            (e.getModifiersEx() & expectedModifiers) == expectedModifiers) {
-                        toggleTerminalView();
-                        return true; // Consume the event so that it does not reach the terminal widget.
-                    }
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            if (e.getID() == KeyEvent.KEY_PRESSED) {
+                int expectedModifiers = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK;
+                if (e.getKeyCode() == KeyEvent.VK_COMMA &&
+                        (e.getModifiersEx() & expectedModifiers) == expectedModifiers) {
+                    toggleTerminalView();
+                    return true; // Consume the event so that it does not reach the terminal widget.
                 }
-                return false;
             }
+            return false;
         });
 
         ThemeManager.setupWindowFrame(this);
@@ -168,7 +165,6 @@ public class EditorFrame extends JFrame {
     private void addFixedDividerListenersToTerminal(JSplitPane split) {
         // Update stored divider when the user moves it while terminal is expanded.
         split.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, evt -> {
-            System.out.println("Terminal view divider location: " + evt.getNewValue() + " (old: " + terminalViewDividerLocation + ")");
             if (isTerminalToggled) {
                 int newLocation = (Integer) evt.getNewValue();
                 if (newLocation > 1) {
@@ -218,7 +214,6 @@ public class EditorFrame extends JFrame {
             if (isProjectViewToggled) {
                 int newLocation = (Integer) evt.getNewValue();
                 if (newLocation > 1) {
-                    System.out.println("Project view divider location: " + newLocation + " (old: " + projectViewDividerLocation + ")");
                     projectViewDividerLocation = newLocation;
                 }
             }
@@ -336,7 +331,6 @@ public class EditorFrame extends JFrame {
             editorTerminalSplit.setDividerLocation(editorTerminalSplit.getHeight() - editorTerminalSplit.getDividerSize());
             tabManager.getActiveTextArea().requestFocus();
         }
-        System.out.println("Is terminal toggled: " + isTerminalToggled);
     }
 
     /**

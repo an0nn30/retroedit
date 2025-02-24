@@ -30,12 +30,19 @@ public class Terminal {
             if (isWindows()) {
                 command = new String[]{"cmd.exe"};
             } else {
-                command = new String[]{"/bin/zsh", "--login"};
+                String shell = System.getenv("SHELL");
+                if (shell == null || shell.isEmpty()) {
+                    shell = "/bin/sh";
+                }
+                command = new String[]{shell, "--login"};
                 envs = new HashMap<>(System.getenv());
                 envs.put("TERM", "xterm-256color");
             }
 
-            PtyProcess process = new PtyProcessBuilder().setCommand(command).setEnvironment(envs).start();
+            PtyProcess process = new PtyProcessBuilder()
+                    .setCommand(command)
+                    .setEnvironment(envs)
+                    .start();
             return new PtyProcessTtyConnector(process, StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new IllegalStateException(e);
