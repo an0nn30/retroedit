@@ -6,6 +6,7 @@ import com.github.an0nn30.retroedit.ui.EditorFrame;
 import javax.swing.*;
 import java.awt.*;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Enumeration;
@@ -23,12 +24,13 @@ public class Main {
         }
 
         SwingUtilities.invokeLater(() -> {
-            EditorFrame editorFrame = new EditorFrame();
-            editorFrame.setVisible(true);
-            // If a file path is provided as a command-line argument, open it after the frame is loaded
-            if (args != null && args.length > 0) {
-                SwingUtilities.invokeLater(() -> editorFrame.openFile(args[0]));
+            EditorFrame frame;
+            if (args.length >= 1) {
+                frame = new EditorFrame(new File(args[0]));
+            } else {
+                frame = new EditorFrame();
             }
+            frame.setVisible(true);
         });
     }
 

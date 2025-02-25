@@ -24,6 +24,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,13 +51,47 @@ public class EditorFrame extends JFrame {
     private AbstractSourceTree sourceTree;
     private JScrollPane treeSP;
     LanguageSupportFactory lsf;
+    private boolean createUntitledTab = true;
+    private File openFile;
 
+
+
+    public EditorFrame(File openFile) {
+        super("Retro Edit");
+        this.openFile = openFile;
+        if (openFile.isFile() ) {
+            this.createUntitledTab = false;
+        }
+        // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
+        // even if the terminal widget currently has focus.
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            if (e.getID() == KeyEvent.KEY_PRESSED) {
+                int expectedModifiers = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK;
+                if (e.getKeyCode() == KeyEvent.VK_COMMA &&
+                        (e.getModifiersEx() & expectedModifiers) == expectedModifiers) {
+                    toggleTerminalView();
+                    return true; // Consume the event so that it does not reach the terminal widget.
+                }
+            }
+            return false;
+        });
+
+        ThemeManager.setupWindowFrame(this);
+        SwingUtilities.invokeLater(() -> {
+            initializeFrame();
+            initializeComponents();
+            layoutComponents();
+            registerEventSubscriptions();
+            startEditor();
+            disableAllToolbars(this);
+        });
+
+    }
     /**
      * Constructs the EditorFrame and initializes the UI.
      */
     public EditorFrame() {
         super("Retro Edit");
-
         // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
         // even if the terminal widget currently has focus.
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
@@ -100,6 +135,8 @@ public class EditorFrame extends JFrame {
         JTree dummy = new JTree((TreeNode) null);
         treeSP = new JScrollPane(dummy);
         directoryTree = new DirectoryTree(this);
+        if (this.openFile.isDirectory())
+            directoryTree.setRootDirectory(this.openFile);
         searchController = null; // Lazy-load search controller
         lsf = LanguageSupportFactory.get();
 
@@ -267,7 +304,10 @@ public class EditorFrame extends JFrame {
      */
     private void startEditor() {
         SwingUtilities.invokeLater(() -> {
-            tabManager.addNewTab("Untitled", new TextArea(this));
+            if (this.createUntitledTab)
+                tabManager.addNewTab("Untitled", new TextArea(this));
+            else
+                tabManager.openFile(this.openFile);
             // Instead of toggling the terminal view (which would show it), we keep it minimized.
             hideTerminal();
         });
