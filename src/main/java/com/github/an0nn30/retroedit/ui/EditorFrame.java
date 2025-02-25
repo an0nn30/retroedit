@@ -284,7 +284,7 @@ public class EditorFrame extends JFrame {
      */
     private void addComponentsToFrame() {
         setLayout(new BorderLayout());
-        if (System.getProperty("os.name").equals("mac")) {
+        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
         	TitleBar titleBar = new TitleBar(this, mainToolbar);
         	add(titleBar, BorderLayout.NORTH);
         } else {
