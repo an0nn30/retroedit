@@ -67,7 +67,7 @@ public class TabManager extends JTabbedPane {
      */
     private static Icon loadTabIcon() {
         try {
-            return new FlatSVGIcon(ThemeManager.icons.get("file"), 20, 20);
+            return new FlatSVGIcon(ThemeManager.icons.get("empty-type"), 20, 20);
         } catch (Exception e) {
             Logger.getInstance().error(TabManager.class, "Error loading tab icon: " + e.getMessage());
             return null;
