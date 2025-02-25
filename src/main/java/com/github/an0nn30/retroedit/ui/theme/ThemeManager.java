@@ -1,5 +1,6 @@
 package com.github.an0nn30.retroedit.ui.theme;
 
+import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.github.an0nn30.retroedit.logging.Logger;
 import com.github.an0nn30.retroedit.settings.Settings;
@@ -49,9 +50,26 @@ public class ThemeManager {
      *
      * @param frame the EditorFrame to configure.
      */
-    public static void setupWindowFrame(EditorFrame frame) {
+    public static void setupWindowFrame(EditorFrame frame, String theme) {
         try {
-            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+            switch (theme) {
+                case "Light":
+                    UIManager.setLookAndFeel(new FlatIntelliJLaf());
+                    break;
+                case "Dark":
+                    UIManager.setLookAndFeel(new FlatDarkLaf());
+                    break;
+                case "Retro":
+                    UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+                    break;
+                default:
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            }
+
+            SwingUtilities.updateComponentTreeUI(frame);
+
+//            FlatIntelliJLaf.install();
+//            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
 //            frame.setUndecorated(true);
 //            frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         } catch (Exception e) {
@@ -69,19 +87,12 @@ public class ThemeManager {
      * @param frame       the JFrame whose theme should be updated.
      * @param eventRecord an optional event record containing the new theme.
      */
-    public static void updateInterfaceTheme(JFrame frame, Object eventRecord) {
+    public static void updateInterfaceTheme(EditorFrame frame, Object eventRecord) {
         String theme = (eventRecord == null)
                 ? Settings.getInstance().getInterfaceTheme()
                 : eventRecord.toString();
 
-        try {
-            if (theme.equalsIgnoreCase("retro")) {
-                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-            }
-        } catch (Exception e) {
-            Logger.getInstance().error(ThemeManager.class, "Failed to set theme: " + e.getMessage());
-            e.printStackTrace();
-        }
+        setupWindowFrame(frame, theme);
         SwingUtilities.updateComponentTreeUI(frame);
         frame.revalidate();
         frame.repaint();

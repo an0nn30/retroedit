@@ -2,12 +2,15 @@ package com.github.an0nn30.retroedit.ui;
 
 import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventType;
+import com.github.an0nn30.retroedit.settings.Settings;
 import com.github.an0nn30.retroedit.ui.components.DirectoryTree;
 import com.github.an0nn30.retroedit.ui.components.Terminal;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
+import com.github.an0nn30.retroedit.ui.platform.MacUtils;
 import com.github.an0nn30.retroedit.ui.search.SearchController;
 import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
 import com.jediterm.terminal.ui.JediTermWidget;
+import jdk.jfr.Event;
 import org.fife.rsta.ac.AbstractSourceTree;
 import org.fife.rsta.ac.LanguageSupport;
 import org.fife.rsta.ac.LanguageSupportFactory;
@@ -106,7 +109,7 @@ public class EditorFrame extends JFrame {
             return false;
         });
 
-        ThemeManager.setupWindowFrame(this);
+        ThemeManager.setupWindowFrame(this, Settings.getInstance().getInterfaceTheme());
         SwingUtilities.invokeLater(() -> {
             initializeFrame();
             initializeComponents();
@@ -121,6 +124,8 @@ public class EditorFrame extends JFrame {
      * Initializes frame properties such as size and close operation.
      */
     private void initializeFrame() {
+        MacUtils macUtils = new MacUtils();
+        macUtils.setMacTitleBar(this);
         setSize(700, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
@@ -194,7 +199,7 @@ public class EditorFrame extends JFrame {
         // Remove automatic resizing by setting resize weight to 0.
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tabManager, new JPanel());
         split.setResizeWeight(0);
-        split.setOneTouchExpandable(true);
+        split.setOneTouchExpandable(false);
         split.setContinuousLayout(true);
         return split;
     }
@@ -240,7 +245,7 @@ public class EditorFrame extends JFrame {
         JSplitPane split2 = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, split, editorTerminalSplit);
         // Remove automatic resizing by setting resize weight to 0.
         split2.setResizeWeight(1);
-        split2.setOneTouchExpandable(true);
+        split2.setOneTouchExpandable(false);
         split2.setContinuousLayout(true);
         return split2;
     }
@@ -279,7 +284,8 @@ public class EditorFrame extends JFrame {
      */
     private void addComponentsToFrame() {
         setLayout(new BorderLayout());
-        add(mainToolbar, BorderLayout.NORTH);
+        TitleBar titleBar = new TitleBar(this, mainToolbar);
+        add(titleBar, BorderLayout.NORTH);
         add(projectEditorSplit, BorderLayout.CENTER);
     }
 
@@ -295,6 +301,7 @@ public class EditorFrame extends JFrame {
             EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), eventRecord -> {
                 refreshSourceTree();
             });
+            EventBus.subscribe(EventType.THEME_CHANGED.name(), eventRecord -> ThemeManager.updateInterfaceTheme(this, eventRecord.data()));
         });
     }
 
@@ -438,6 +445,7 @@ public class EditorFrame extends JFrame {
                 LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
                 JavaLanguageSupport jls = (JavaLanguageSupport) support;
                 support.install(tabManager.getActiveTextArea());
+                jls.install(tabManager.getActiveTextArea());
             } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT.equals(language)) {
                 sourceTree = new JavaScriptOutlineTree();
             } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML.equals(language)) {

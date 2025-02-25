@@ -38,8 +38,7 @@ public class MenuBar {
      */
     private void createMenus() {
         // On Mac, if the theme is not "retro", use the screen menu bar.
-        if (System.getProperty("os.name").contains("Mac") &&
-                !com.github.an0nn30.retroedit.settings.Settings.getInstance().getInterfaceTheme().equalsIgnoreCase("retro")) {
+        if (System.getProperty("os.name").contains("Mac")) {
             System.setProperty("apple.laf.useScreenMenuBar", "true");
         }
 
