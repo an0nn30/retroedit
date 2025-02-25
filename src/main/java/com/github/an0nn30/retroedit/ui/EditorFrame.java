@@ -284,8 +284,12 @@ public class EditorFrame extends JFrame {
      */
     private void addComponentsToFrame() {
         setLayout(new BorderLayout());
-        TitleBar titleBar = new TitleBar(this, mainToolbar);
-        add(titleBar, BorderLayout.NORTH);
+        if (System.getProperty("os.name").equals("mac")) {
+        	TitleBar titleBar = new TitleBar(this, mainToolbar);
+        	add(titleBar, BorderLayout.NORTH);
+        } else {
+         	add(mainToolbar, BorderLayout.NORTH);
+        }
         add(projectEditorSplit, BorderLayout.CENTER);
     }
 
