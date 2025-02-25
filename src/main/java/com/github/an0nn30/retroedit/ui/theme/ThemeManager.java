@@ -35,6 +35,10 @@ public class ThemeManager {
         tempIcons.put("terminal", "tango/scalable/apps/utilities-terminal.svg");
         tempIcons.put("file", "tango/scalable/mimetypes/text-x-generic.svg");
         tempIcons.put("tab-close", "tango/scalable/actions/closeActive.svg");
+        tempIcons.put("java-file", "icons/java.svg");
+        tempIcons.put("folder", "icons/folder.svg");
+        tempIcons.put("empty-type", "icons/any_type.svg");
+        tempIcons.put("xml-file", "icons/xml.svg");
         icons = Collections.unmodifiableMap(tempIcons);
     }
 

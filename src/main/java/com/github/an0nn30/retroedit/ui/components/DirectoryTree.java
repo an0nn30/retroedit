@@ -1,10 +1,13 @@
 package com.github.an0nn30.retroedit.ui.components;
 
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
 import com.github.an0nn30.retroedit.ui.search.ProjectFileSearchIndex;
+import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import java.awt.Component;
@@ -44,6 +47,9 @@ public class DirectoryTree extends JTree {
         treeModel = new DefaultTreeModel(emptyRoot);
         setModel(treeModel);
 
+        // Install custom cell renderer for adding icons to .java files and directories.
+        setCellRenderer(new JavaFileTreeCellRenderer());
+
         // Enable drag-and-drop functionality.
         setDragEnabled(true);
         setDropMode(DropMode.ON);
@@ -69,11 +75,10 @@ public class DirectoryTree extends JTree {
      */
     public void refresh() {
         if (rootDirectory == null) {
-            // Clear tree if no directory is selected.
             treeModel.setRoot(new DefaultMutableTreeNode(""));
             return;
         }
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(rootDirectory.getName());
+        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(rootDirectory);
         loadDirectory(rootNode, rootDirectory);
         treeModel.setRoot(rootNode);
     }
@@ -87,7 +92,6 @@ public class DirectoryTree extends JTree {
     public void setRootDirectory(File rootDirectory) {
         this.rootDirectory = rootDirectory;
         refresh();
-        // Trigger asynchronous indexing when the root directory is set.
         ProjectFileSearchIndex.buildIndex(rootDirectory);
     }
 
@@ -101,20 +105,17 @@ public class DirectoryTree extends JTree {
         if (!directory.isDirectory()) {
             return;
         }
-
         File[] files = directory.listFiles();
         if (files == null) {
             return;
         }
-
-        // Sort files alphabetically.
         Arrays.sort(files, Comparator.comparing(File::getName));
-
         for (File file : files) {
             if (hideDotFiles && file.getName().startsWith(".")) {
                 continue;
             }
-            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(file.getName());
+            // Store the actual File object so that the renderer can decide on the icon.
+            DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(file);
             parentNode.add(childNode);
             if (file.isDirectory()) {
                 loadDirectory(childNode, file);
@@ -134,9 +135,14 @@ public class DirectoryTree extends JTree {
         }
         StringBuilder fullPath = new StringBuilder(rootDirectory.getAbsolutePath());
         Object[] nodes = path.getPath();
-        // Skip the first node as it represents the root directory name.
+        // Skip the first node as it represents the root directory.
         for (int i = 1; i < nodes.length; i++) {
-            fullPath.append(File.separator).append(nodes[i].toString());
+            Object obj = ((DefaultMutableTreeNode) nodes[i]).getUserObject();
+            if (obj instanceof File) {
+                fullPath.append(File.separator).append(((File) obj).getName());
+            } else {
+                fullPath.append(File.separator).append(obj.toString());
+            }
         }
         return fullPath.toString();
     }
@@ -209,31 +215,21 @@ public class DirectoryTree extends JTree {
         if (path == null) {
             return;
         }
-
         String filePath = getFilePathFromTreePath(path);
         File selectedFile = new File(filePath);
-        // Only show context menu for directories.
         if (!selectedFile.isDirectory()) {
             return;
         }
-
         JPopupMenu contextMenu = new JPopupMenu();
-        // Add "New File" menu item.
         contextMenu.add(createMenuItem("New File", ae -> createNewFileInDirectory(selectedFile)));
-        // Add "New Directory" menu item.
         contextMenu.add(createMenuItem("New Directory", ae -> createNewDirectoryInDirectory(selectedFile)));
-
         boolean isRoot = selectedFile.equals(rootDirectory);
-        // Add "Delete" menu item (disabled for root).
         JMenuItem deleteItem = createMenuItem("Delete", ae -> deleteDirectoryWithConfirmation(selectedFile));
         deleteItem.setEnabled(!isRoot);
         contextMenu.add(deleteItem);
-
-        // Add "Rename" menu item (disabled for root).
         JMenuItem renameItem = createMenuItem("Rename", ae -> renameDirectory(selectedFile));
         renameItem.setEnabled(!isRoot);
         contextMenu.add(renameItem);
-
         contextMenu.show(this, e.getX(), e.getY());
     }
 
@@ -358,7 +354,6 @@ public class DirectoryTree extends JTree {
      * within the directory tree.
      */
     private class FileTransferHandler extends TransferHandler {
-
         @Override
         public int getSourceActions(JComponent c) {
             return MOVE;
@@ -376,11 +371,9 @@ public class DirectoryTree extends JTree {
 
         @Override
         public boolean canImport(TransferSupport support) {
-            // Only support drop actions with string data (file path)
             if (!support.isDrop() || !support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 return false;
             }
-            // Check if the drop target is a directory.
             JTree.DropLocation dropLocation = (JTree.DropLocation) support.getDropLocation();
             TreePath targetPath = dropLocation.getPath();
             if (targetPath == null) {
@@ -405,18 +398,14 @@ public class DirectoryTree extends JTree {
             try {
                 String sourceFilePath = (String) transferable.getTransferData(DataFlavor.stringFlavor);
                 File sourceFile = new File(sourceFilePath);
-
-                // Prevent dropping into itself or its descendant.
                 if (targetDir.equals(sourceFile) || isChildOf(sourceFile, targetDir)) {
                     return false;
                 }
-
                 File destFile = new File(targetDir, sourceFile.getName());
                 if (destFile.exists()) {
                     showError("A file or directory with that name already exists in the target location.");
                     return false;
                 }
-
                 boolean success = sourceFile.renameTo(destFile);
                 if (!success) {
                     showError("Could not move the file/directory.");
@@ -430,13 +419,6 @@ public class DirectoryTree extends JTree {
             return false;
         }
 
-        /**
-         * Checks if the child file is a descendant of the parent file.
-         *
-         * @param parent the potential parent file.
-         * @param child  the file to check.
-         * @return true if child is a descendant of parent; false otherwise.
-         */
         private boolean isChildOf(File parent, File child) {
             try {
                 File parentCanonical = parent.getCanonicalFile();
@@ -455,7 +437,7 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * Returns the root directory.
+     * Returns the current root directory.
      *
      * @return the current root directory.
      */
@@ -464,8 +446,7 @@ public class DirectoryTree extends JTree {
     }
 
     /**
-     * Selects and expands the tree node corresponding to the specified file,
-     * if that file exists under the current project (i.e. the root directory).
+     * Selects and expands the tree node corresponding to the specified file.
      *
      * @param file the file to select in the tree.
      */
@@ -476,20 +457,16 @@ public class DirectoryTree extends JTree {
         try {
             String rootPath = rootDirectory.getCanonicalPath();
             String filePath = file.getCanonicalPath();
-            // Only reveal files within the project
             if (!filePath.startsWith(rootPath)) {
                 return;
             }
-            // Build the relative path parts (e.g. for "project/src/Main.java", parts would be ["src", "Main.java"])
             String relativePath = filePath.substring(rootPath.length());
             if (relativePath.startsWith(File.separator)) {
                 relativePath = relativePath.substring(1);
             }
             String[] pathParts = relativePath.isEmpty() ? new String[0] : relativePath.split(Pattern.quote(File.separator));
-            // Start with the root node (which represents the project root)
             DefaultMutableTreeNode rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
             TreePath treePath = new TreePath(rootNode);
-            // Recursively search for the file node.
             treePath = findTreePath(rootNode, pathParts, 0);
             if (treePath != null) {
                 setSelectionPath(treePath);
@@ -509,14 +486,19 @@ public class DirectoryTree extends JTree {
      * @return the TreePath if found; otherwise, null.
      */
     private TreePath findTreePath(DefaultMutableTreeNode node, String[] pathParts, int index) {
-        // If all parts have been matched, return the TreePath for this node.
         if (index >= pathParts.length) {
             return new TreePath(node.getPath());
         }
-        // Look for a child node with a matching name.
         for (int i = 0; i < node.getChildCount(); i++) {
             DefaultMutableTreeNode child = (DefaultMutableTreeNode) node.getChildAt(i);
-            if (child.getUserObject().toString().equals(pathParts[index])) {
+            Object userObj = child.getUserObject();
+            String nodeName;
+            if (userObj instanceof File) {
+                nodeName = ((File) userObj).getName();
+            } else {
+                nodeName = userObj.toString();
+            }
+            if (nodeName.equals(pathParts[index])) {
                 TreePath path = findTreePath(child, pathParts, index + 1);
                 if (path != null) {
                     return path;
@@ -524,5 +506,40 @@ public class DirectoryTree extends JTree {
             }
         }
         return null;
+    }
+
+    /**
+     * Custom TreeCellRenderer that prepends an icon for .java files and directories.
+     * For all other file types, it uses the "empty-type" icon.
+     */
+    private class JavaFileTreeCellRenderer extends DefaultTreeCellRenderer {
+        @Override
+        public Component getTreeCellRendererComponent(JTree tree, Object value,
+                                                      boolean sel, boolean expanded,
+                                                      boolean leaf, int row, boolean hasFocus) {
+            Component c = super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+            if (value instanceof DefaultMutableTreeNode) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+                Object userObj = node.getUserObject();
+                String label;
+                if (userObj instanceof File) {
+                    File f = (File) userObj;
+                    label = f.getName();
+                    if (f.isDirectory()) {
+                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("folder")));
+                    } else if (label.toLowerCase().endsWith(".java")) {
+                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("java-file")));
+                    } else if (label.toLowerCase().endsWith(".xml")) {
+                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("xml-file")));
+                    } else {
+                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("empty-type")));
+                    }
+                } else {
+                    label = userObj.toString();
+                }
+                setText(label);
+            }
+            return c;
+        }
     }
 }

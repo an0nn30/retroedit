@@ -18,6 +18,7 @@ import org.fife.rsta.ac.java.JavaLanguageSupport;
 import org.fife.rsta.ac.java.tree.JavaOutlineTree;
 import org.fife.rsta.ac.js.tree.JavaScriptOutlineTree;
 import org.fife.rsta.ac.xml.tree.XmlOutlineTree;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 
 import javax.swing.*;
 import javax.swing.tree.TreeNode;
@@ -26,6 +27,11 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
 
@@ -48,13 +54,47 @@ public class EditorFrame extends JFrame {
     private AbstractSourceTree sourceTree;
     private JScrollPane treeSP;
     LanguageSupportFactory lsf;
+    private boolean createUntitledTab = true;
+    private File openFile;
 
+
+
+    public EditorFrame(File openFile) {
+        super("Retro Edit");
+        this.openFile = openFile;
+        if (openFile.isFile() ) {
+            this.createUntitledTab = false;
+        }
+        // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
+        // even if the terminal widget currently has focus.
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
+            if (e.getID() == KeyEvent.KEY_PRESSED) {
+                int expectedModifiers = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK;
+                if (e.getKeyCode() == KeyEvent.VK_COMMA &&
+                        (e.getModifiersEx() & expectedModifiers) == expectedModifiers) {
+                    toggleTerminalView();
+                    return true; // Consume the event so that it does not reach the terminal widget.
+                }
+            }
+            return false;
+        });
+
+//        ThemeManager.setupWindowFrame(this);
+        SwingUtilities.invokeLater(() -> {
+            initializeFrame();
+            initializeComponents();
+            layoutComponents();
+            registerEventSubscriptions();
+            startEditor();
+            disableAllToolbars(this);
+        });
+
+    }
     /**
      * Constructs the EditorFrame and initializes the UI.
      */
     public EditorFrame() {
         super("Retro Edit");
-
         // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
         // even if the terminal widget currently has focus.
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
@@ -100,6 +140,8 @@ public class EditorFrame extends JFrame {
         JTree dummy = new JTree((TreeNode) null);
         treeSP = new JScrollPane(dummy);
         directoryTree = new DirectoryTree(this);
+        if (this.openFile != null && this.openFile.isDirectory())
+            directoryTree.setRootDirectory(this.openFile);
         searchController = null; // Lazy-load search controller
         lsf = LanguageSupportFactory.get();
 
@@ -269,7 +311,10 @@ public class EditorFrame extends JFrame {
      */
     private void startEditor() {
         SwingUtilities.invokeLater(() -> {
-            tabManager.addNewTab("Untitled", new TextArea(this));
+            if (this.createUntitledTab)
+                tabManager.addNewTab("Untitled", new TextArea(this));
+            else
+                tabManager.openFile(this.openFile);
             // Instead of toggling the terminal view (which would show it), we keep it minimized.
             hideTerminal();
         });
@@ -418,5 +463,46 @@ public class EditorFrame extends JFrame {
             }
             treeSP.revalidate();
         });
+    }
+
+
+    /**
+     * Opens a file from the given file path by reading its contents,
+     * setting the syntax style based on the file extension, and adding
+     * a new tab with the file's name as the title.
+     *
+     * @param filePath the path of the file to open.
+     */
+    public void openFile(String filePath) {
+        try {
+            Path path = Paths.get(filePath);
+            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+            // Create a new TextArea and set its text to the file content.
+            TextArea textArea = new TextArea(this);
+            textArea.setText(content);
+
+            // Determine the syntax style based on the file extension.
+            String fileName = path.getFileName().toString().toLowerCase();
+            if (fileName.endsWith(".java")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+            } else if (fileName.endsWith(".js")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+            } else if (fileName.endsWith(".xml")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
+            } else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
+            } else if (fileName.endsWith(".py")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+            } else {
+                // Default to plain text if no known file type is detected.
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+            }
+
+            // Add a new tab using the file name as the tab title.
+            tabManager.addNewTab(fileName, textArea);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error opening file: " + ex.getMessage(),
+                    "File Open Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

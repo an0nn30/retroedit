@@ -15,7 +15,6 @@ public class TitleBar extends JPanel {
         emptyPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         emptyPanel.setMinimumSize(new Dimension(0, 30));
         emptyPanel.setOpaque(false); // make it transparent
-
         // Add the empty panel first then the MainToolbar
         add(emptyPanel);
         add(mainToolbar);
