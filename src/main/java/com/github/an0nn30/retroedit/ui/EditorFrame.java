@@ -79,7 +79,7 @@ public class EditorFrame extends JFrame {
             return false;
         });
 
-        ThemeManager.setupWindowFrame(this);
+//        ThemeManager.setupWindowFrame(this);
         SwingUtilities.invokeLater(() -> {
             initializeFrame();
             initializeComponents();
@@ -140,7 +140,7 @@ public class EditorFrame extends JFrame {
         JTree dummy = new JTree((TreeNode) null);
         treeSP = new JScrollPane(dummy);
         directoryTree = new DirectoryTree(this);
-        if (this.openFile.isDirectory())
+        if (this.openFile != null && this.openFile.isDirectory())
             directoryTree.setRootDirectory(this.openFile);
         searchController = null; // Lazy-load search controller
         lsf = LanguageSupportFactory.get();
