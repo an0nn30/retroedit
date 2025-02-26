@@ -2,15 +2,13 @@ package com.github.an0nn30.retroedit.ui;
 
 import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventType;
+import com.github.an0nn30.retroedit.launchers.LaunchConfigManager;
 import com.github.an0nn30.retroedit.settings.Settings;
 import com.github.an0nn30.retroedit.ui.components.DirectoryTree;
-import com.github.an0nn30.retroedit.ui.components.Terminal;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
 import com.github.an0nn30.retroedit.ui.platform.MacUtils;
 import com.github.an0nn30.retroedit.ui.search.SearchController;
 import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
-import com.jediterm.terminal.ui.JediTermWidget;
-import jdk.jfr.Event;
 import org.fife.rsta.ac.AbstractSourceTree;
 import org.fife.rsta.ac.LanguageSupport;
 import org.fife.rsta.ac.LanguageSupportFactory;
@@ -41,11 +39,10 @@ import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
 public class EditorFrame extends JFrame {
 
     private MainToolbar mainToolbar;
-    private TabManager tabManager;
+    private TextAreaTabManager textAreaTabManager;
     private JSplitPane projectEditorSplit;
     private JSplitPane editorTerminalSplit;
     private DirectoryTree directoryTree;
-    private JediTermWidget terminal;
     private boolean isProjectViewToggled = false;
     private boolean isTerminalToggled = false; // false means terminal is minimized/hidden
     private SearchController searchController;
@@ -56,6 +53,8 @@ public class EditorFrame extends JFrame {
     LanguageSupportFactory lsf;
     private boolean createUntitledTab = true;
     private File openFile;
+    private LaunchConfigManager launchConfigManager;
+    private TerminalTabManager terminalTabManager;
 
 
 
@@ -134,8 +133,10 @@ public class EditorFrame extends JFrame {
      * Initializes UI components used in the frame.
      */
     private void initializeComponents() {
-        mainToolbar = new MainToolbar(this);
-        tabManager = new TabManager(this);
+        launchConfigManager = new LaunchConfigManager(this);
+        mainToolbar = new MainToolbar(this, launchConfigManager);
+        textAreaTabManager = new TextAreaTabManager(this);
+        terminalTabManager = new TerminalTabManager(this);
         setJMenuBar(new MenuBar(this).getMenuBar());
         JTree dummy = new JTree((TreeNode) null);
         treeSP = new JScrollPane(dummy);
@@ -145,31 +146,33 @@ public class EditorFrame extends JFrame {
         searchController = null; // Lazy-load search controller
         lsf = LanguageSupportFactory.get();
 
-        loadTerminalWidget();
+
+
+//        loadTerminalWidget();
     }
 
     /**
      * Asynchronously loads the terminal widget.
      */
-    private void loadTerminalWidget() {
-        SwingWorker<JediTermWidget, Void> terminalLoader = new SwingWorker<>() {
-            @Override
-            protected JediTermWidget doInBackground() {
-                return Terminal.createTerminalWidget(EditorFrame.this);
-            }
-
-            @Override
-            protected void done() {
-                try {
-                    terminal = get();
-                    editorTerminalSplit.setBottomComponent(terminal);
-                } catch (Exception ignored) {
-                    // Exception handling can be added here if needed.
-                }
-            }
-        };
-        terminalLoader.execute();
-    }
+//    private void loadTerminalWidget() {
+//        SwingWorker<JediTermWidget, Void> terminalLoader = new SwingWorker<>() {
+//            @Override
+//            protected JediTermWidget doInBackground() {
+//                return Terminal.createTerminalWidget(EditorFrame.this);
+//            }
+//
+//            @Override
+//            protected void done() {
+//                try {
+//                    terminal = get();
+//                    editorTerminalSplit.setBottomComponent(terminal);
+//                } catch (Exception ignored) {
+//                    // Exception handling can be added here if needed.
+//                }
+//            }
+//        };
+//        terminalLoader.execute();
+//    }
 
     /**
      * Lays out components within the frame.
@@ -197,7 +200,7 @@ public class EditorFrame extends JFrame {
      */
     private JSplitPane createEditorTerminalSplit() {
         // Remove automatic resizing by setting resize weight to 0.
-        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tabManager, new JPanel());
+        JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, textAreaTabManager, terminalTabManager);
         split.setResizeWeight(0);
         split.setOneTouchExpandable(false);
         split.setContinuousLayout(true);
@@ -316,9 +319,9 @@ public class EditorFrame extends JFrame {
     private void startEditor() {
         SwingUtilities.invokeLater(() -> {
             if (this.createUntitledTab)
-                tabManager.addNewTab("Untitled", new TextArea(this));
+                textAreaTabManager.addNewTab("Untitled", new TextArea(this));
             else
-                tabManager.openFile(this.openFile);
+                textAreaTabManager.openFile(this.openFile);
             // Instead of toggling the terminal view (which would show it), we keep it minimized.
             hideTerminal();
         });
@@ -342,8 +345,8 @@ public class EditorFrame extends JFrame {
      *
      * @return the TabManager instance.
      */
-    public TabManager getTabManager() {
-        return tabManager;
+    public TextAreaTabManager getTabManager() {
+        return textAreaTabManager;
     }
 
     /**
@@ -353,6 +356,10 @@ public class EditorFrame extends JFrame {
      */
     public DirectoryTree getDirectoryTree() {
         return directoryTree;
+    }
+
+    public TerminalTabManager getTerminalTabManager() {
+        return terminalTabManager;
     }
 
     /**
@@ -367,7 +374,7 @@ public class EditorFrame extends JFrame {
         } else {
             // When collapsing, set a fixed minimal divider location.
             projectEditorSplit.setDividerLocation(1);
-            tabManager.getActiveTextArea().requestFocus();
+            textAreaTabManager.getActiveTextArea().requestFocus();
         }
     }
 
@@ -379,13 +386,13 @@ public class EditorFrame extends JFrame {
         if (isTerminalToggled) {
             // When expanding, reapply the stored divider location.
             editorTerminalSplit.setDividerLocation(terminalViewDividerLocation);
-            if (terminal != null) {
-                terminal.requestFocus();
+            if (terminalTabManager.getActiveTerminal() != null) {
+                terminalTabManager.getActiveTerminal().requestFocus();
             }
         } else {
             // When collapsing, set divider location so that the top component occupies full height.
             editorTerminalSplit.setDividerLocation(editorTerminalSplit.getHeight() - editorTerminalSplit.getDividerSize());
-            tabManager.getActiveTextArea().requestFocus();
+            textAreaTabManager.getActiveTextArea().requestFocus();
         }
     }
 
@@ -442,14 +449,14 @@ public class EditorFrame extends JFrame {
                 sourceTree.uninstall();
             }
 
-            String language = tabManager.getActiveTextArea().getSyntaxEditingStyle();
+            String language = textAreaTabManager.getActiveTextArea().getSyntaxEditingStyle();
 
             if (SYNTAX_STYLE_JAVA.equals(language)) {
                 sourceTree = new JavaOutlineTree();
                 LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
                 JavaLanguageSupport jls = (JavaLanguageSupport) support;
-                support.install(tabManager.getActiveTextArea());
-                jls.install(tabManager.getActiveTextArea());
+                support.install(textAreaTabManager.getActiveTextArea());
+                jls.install(textAreaTabManager.getActiveTextArea());
             } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT.equals(language)) {
                 sourceTree = new JavaScriptOutlineTree();
             } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML.equals(language)) {
@@ -459,7 +466,7 @@ public class EditorFrame extends JFrame {
             }
 
             if (sourceTree != null) {
-                sourceTree.listenTo(tabManager.getActiveTextArea());
+                sourceTree.listenTo(textAreaTabManager.getActiveTextArea());
                 treeSP.setViewportView(sourceTree);
             } else {
                 JTree dummy = new JTree((TreeNode) null);
@@ -497,16 +504,22 @@ public class EditorFrame extends JFrame {
                 textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
             } else if (fileName.endsWith(".py")) {
                 textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
+            } else if (fileName.endsWith(".json")) {
+                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
             } else {
                 // Default to plain text if no known file type is detected.
                 textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
             }
 
             // Add a new tab using the file name as the tab title.
-            tabManager.addNewTab(fileName, textArea);
+            textAreaTabManager.addNewTab(fileName, textArea);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Error opening file: " + ex.getMessage(),
                     "File Open Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    public boolean getIsTerminalToggled() {
+        return isTerminalToggled;
     }
 }

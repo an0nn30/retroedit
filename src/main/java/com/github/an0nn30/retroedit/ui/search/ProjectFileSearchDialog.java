@@ -1,7 +1,7 @@
 package com.github.an0nn30.retroedit.ui.search;
 
 import com.github.an0nn30.retroedit.ui.EditorFrame;
-import com.github.an0nn30.retroedit.ui.TabManager;
+import com.github.an0nn30.retroedit.ui.TextAreaTabManager;
 import com.github.an0nn30.retroedit.ui.components.DirectoryTree;
 
 import javax.swing.*;
@@ -214,8 +214,8 @@ public class ProjectFileSearchDialog extends JDialog {
     private void openSelectedFile() {
         File selected = fileList.getSelectedValue();
         if (selected != null) {
-            TabManager tabManager = editorFrame.getTabManager();
-            tabManager.openFile(selected);
+            TextAreaTabManager textAreaTabManager = editorFrame.getTabManager();
+            textAreaTabManager.openFile(selected);
         }
         dispose();
     }

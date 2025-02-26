@@ -12,31 +12,25 @@ import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.io.*;
 
 /**
  * Manages tabs within the editor. Each tab contains a {@link TextArea} for editing text files.
- * This class handles creating new tabs, opening files, saving files, and updating tab states.
- * Each tab uses a prefixed icon loaded from the resource path "/tango/document-new.svg".
+ * This version extends {@code BaseTabManager} so that common focus tracking logic is shared.
  */
-public class TabManager extends JTabbedPane {
+public class TextAreaTabManager extends BaseTabManager<TextArea> {
 
     private final EditorFrame editorFrame;
-
-    // Load the tab icon from resources using FlatLaf's SVG support.
     private static final Icon TAB_ICON = loadTabIcon();
 
-    /**
-     * Constructs a new TabManager for the given EditorFrame.
-     *
-     * @param editorFrame the parent EditorFrame.
-     */
-    public TabManager(EditorFrame editorFrame) {
+    public TextAreaTabManager(EditorFrame editorFrame) {
         super(SwingConstants.TOP);
         this.editorFrame = editorFrame;
         subscribeToTabUpdateEvents();
 
-        // Add a listener to refresh the source tree on tab selection changes.
+        // When switching tabs, refresh the source tree using the active TextArea.
         addChangeListener(e -> {
             editorFrame.refreshSourceTree();
             TextArea activeTextArea = getActiveTextArea();
@@ -50,32 +44,22 @@ public class TabManager extends JTabbedPane {
         });
     }
 
-    /**
-     * Subscribes to TAB_UPDATED events to update the title of the selected tab.
-     */
+    private static Icon loadTabIcon() {
+        try {
+            return new FlatSVGIcon(ThemeManager.retroThemeIcons.get("empty-type"), 20, 20);
+        } catch (Exception e) {
+            Logger.getInstance().error(TextAreaTabManager.class, "Error loading tab icon: " + e.getMessage());
+            return null;
+        }
+    }
+
     private void subscribeToTabUpdateEvents() {
         EventBus.subscribe(EventType.TAB_UPDATED.name(), event ->
                 setTitleAt(getSelectedIndex(), event.data().toString()));
     }
 
     /**
-     * Loads the tab icon from the resource path "/tango/document-new.svg" using FlatSVGIcon.
-     *
-     * @return the loaded Icon, or null if loading fails.
-     */
-    private static Icon loadTabIcon() {
-        try {
-            return new FlatSVGIcon(ThemeManager.retroThemeIcons.get("empty-type"), 20, 20);
-        } catch (Exception e) {
-            Logger.getInstance().error(TabManager.class, "Error loading tab icon: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Creates a new {@link TextArea} with applied settings and event listeners.
-     *
-     * @return a configured TextArea instance.
+     * Creates a new TextArea with theme and configuration applied.
      */
     private TextArea createTextArea() {
         TextArea textArea = new TextArea(editorFrame);
@@ -84,11 +68,6 @@ public class TabManager extends JTabbedPane {
         return textArea;
     }
 
-    /**
-     * Applies the appropriate theme to the given TextArea based on current settings.
-     *
-     * @param textArea the TextArea to which the theme will be applied.
-     */
     private void applyTheme(TextArea textArea) {
         String interfaceTheme = Settings.getInstance().getInterfaceTheme();
         String themePath = "/org/fife/ui/rsyntaxtextarea/themes/idea.xml"; // default
@@ -108,13 +87,7 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Configures the TextArea with code folding, font settings, and a document listener for modifications.
-     *
-     * @param textArea the TextArea to be configured.
-     */
     private void configureTextArea(TextArea textArea) {
-        // No need to set the syntax style here; let TextArea handle it internally.
         textArea.setCodeFoldingEnabled(true);
         textArea.initFontSizeAndFamily();
         attachModificationListener(textArea);
@@ -123,23 +96,16 @@ public class TabManager extends JTabbedPane {
         textArea.setFont(new Font(font.getName(), font.getStyle(), Settings.getInstance().getEditorFontSize()));
     }
 
-    /**
-     * Attaches a document listener to the TextArea to mark the tab as modified on changes.
-     *
-     * @param textArea the TextArea to attach the listener to.
-     */
     private void attachModificationListener(TextArea textArea) {
         textArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) {
                 markModified();
             }
-
             @Override
             public void removeUpdate(javax.swing.event.DocumentEvent e) {
                 markModified();
             }
-
             @Override
             public void changedUpdate(javax.swing.event.DocumentEvent e) {
                 markModified();
@@ -148,21 +114,47 @@ public class TabManager extends JTabbedPane {
     }
 
     /**
+     * Overrides the base method to wrap the TextArea in a scroll pane and attach a focus listener.
+     */
+    @Override
+    protected void addComponentTab(String title, TextArea textArea) {
+        // Attach a focus listener to update the last-focused TextArea.
+        textArea.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                lastFocusedComponent = textArea;
+            }
+        });
+        // Wrap the TextArea in a scroll pane.
+        JScrollPane scrollPane = new RTextScrollPane(textArea);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        addTab(title, TAB_ICON, scrollPane, null);
+        setSelectedIndex(getTabCount() - 1);
+        EventBus.publish(EventType.TAB_UPDATED.name(), title, this);
+    }
+
+    /**
      * Returns the active TextArea from the currently selected tab.
-     *
-     * @return the active TextArea, or null if none is active.
+     * If the selected component is a scroll pane, its viewport is unwrapped.
      */
     public TextArea getActiveTextArea() {
         Component comp = getSelectedComponent();
         if (comp instanceof JScrollPane scrollPane) {
             return (TextArea) scrollPane.getViewport().getView();
         }
-        return null;
+        return lastFocusedComponent;
     }
 
     /**
-     * Marks the current tab as modified by prefixing an asterisk (*) to the tab title.
+     * Adds a new tab for a TextArea. If the provided TextArea is null, one is created.
      */
+    public void addNewTab(String title, TextArea textArea) {
+        if (textArea == null) {
+            textArea = createTextArea();
+        }
+        addComponentTab(title, textArea);
+    }
+
     public void markModified() {
         int index = getSelectedIndex();
         if (index != -1) {
@@ -175,29 +167,18 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Opens a file in a new tab, or selects the tab if the file is already open.
-     *
-     * Additionally, if a project is open, the DirectoryTree will expand and select the opened file.
-     *
-     * @param file the file to open.
-     */
     public void openFile(File file) {
         if (file == null) return;
         if (!confirmSaveIfNeeded()) return;
         if (checkAndSelectIfFileAlreadyOpen(file)) return;
         openFileInNewTab(file);
         requestFocusOnActiveTextArea();
-        // Automatically update the DirectoryTree selection if a project is open.
         if (editorFrame.getDirectoryTree() != null
                 && editorFrame.getDirectoryTree().getRootDirectory() != null) {
             editorFrame.getDirectoryTree().selectFile(file);
         }
     }
 
-    /**
-     * Requests focus on the active TextArea in the current tab.
-     */
     private void requestFocusOnActiveTextArea() {
         TextArea activeTextArea = getActiveTextArea();
         if (activeTextArea != null) {
@@ -205,12 +186,6 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Checks if the file is already open in any tab. If found, selects that tab.
-     *
-     * @param file the file to check.
-     * @return true if the file is already open, false otherwise.
-     */
     private boolean checkAndSelectIfFileAlreadyOpen(File file) {
         for (int i = 0; i < getTabCount(); i++) {
             Component comp = getComponentAt(i);
@@ -227,13 +202,6 @@ public class TabManager extends JTabbedPane {
         return false;
     }
 
-    /**
-     * Compares two files for equality based on canonical paths, falling back to absolute paths if necessary.
-     *
-     * @param f1 the first file.
-     * @param f2 the second file.
-     * @return true if the files are considered equal, false otherwise.
-     */
     private boolean filesAreEqual(File f1, File f2) {
         try {
             return f1.getCanonicalPath().equals(f2.getCanonicalPath());
@@ -242,15 +210,10 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Opens the given file in a new tab.
-     *
-     * @param file the file to open.
-     */
     private void openFileInNewTab(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             TextArea newTextArea = createTextArea();
-            newTextArea.setActiveFile(file);  // This call updates the syntax style internally.
+            newTextArea.setActiveFile(file);
             newTextArea.read(reader, null);
 
             if (shouldReplaceCurrentTab()) {
@@ -265,12 +228,6 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Determines if the current tab should be replaced with the new file.
-     * Replaces the tab if it is empty, untitled, or a modified untitled tab.
-     *
-     * @return true if the current tab should be replaced, false otherwise.
-     */
     private boolean shouldReplaceCurrentTab() {
         int currentIndex = getSelectedIndex();
         if (currentIndex >= 0) {
@@ -282,26 +239,13 @@ public class TabManager extends JTabbedPane {
         return false;
     }
 
-    /**
-     * Replaces the current tab with a new {@link RTextScrollPane} wrapping the provided TextArea.
-     *
-     * @param title       the title for the tab.
-     * @param newTextArea the TextArea to display.
-     */
     private void replaceCurrentTab(String title, TextArea newTextArea) {
         int currentIndex = getSelectedIndex();
         setComponentAt(currentIndex, new RTextScrollPane(newTextArea));
-        // Set the icon on the tab along with the title.
         setIconAt(currentIndex, TAB_ICON);
         EventBus.publish(EventType.TAB_UPDATED.name(), title, this);
     }
 
-    /**
-     * Saves the file in the active tab. If saveAs is true or no file is associated,
-     * a save dialog is shown.
-     *
-     * @param saveAs if true, forces the save dialog to appear.
-     */
     public void saveFile(boolean saveAs) {
         TextArea textArea = getActiveTextArea();
         if (textArea == null) return;
@@ -322,9 +266,6 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Closes the currently selected tab after confirming save if needed.
-     */
     public void closeCurrentTab() {
         int index = getSelectedIndex();
         if (index != -1 && confirmSaveIfNeeded()) {
@@ -332,11 +273,6 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Adjusts the font size in the active TextArea by the given change.
-     *
-     * @param change the change in font size (positive or negative).
-     */
     public void adjustFontSize(int change) {
         TextArea textArea = getActiveTextArea();
         if (textArea != null) {
@@ -347,9 +283,6 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Navigates to the previous tab.
-     */
     public void previousTab() {
         int tabCount = getTabCount();
         if (tabCount > 0) {
@@ -360,9 +293,6 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Navigates to the next tab.
-     */
     public void nextTab() {
         int tabCount = getTabCount();
         if (tabCount > 0) {
@@ -373,30 +303,6 @@ public class TabManager extends JTabbedPane {
         }
     }
 
-    /**
-     * Adds a new tab with the specified title and TextArea. If the provided TextArea is null,
-     * a new one is created. The new tab uses a prefixed icon loaded from "/tango/document-new.svg".
-     *
-     * @param title    the title of the new tab.
-     * @param textArea the TextArea to display, or null to create a new one.
-     */
-    public void addNewTab(String title, TextArea textArea) {
-        if (textArea == null) {
-            textArea = createTextArea();
-        }
-        JScrollPane scrollPane = new RTextScrollPane(textArea);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        // Use the overloaded addTab method with an icon.
-        addTab(title, TAB_ICON, scrollPane, null);
-        setSelectedIndex(getTabCount() - 1);
-        EventBus.publish(EventType.TAB_UPDATED.name(), title, this);
-    }
-
-    /**
-     * Prompts the user to save changes if the current tab is marked as modified.
-     *
-     * @return true if the user chooses to proceed, false if the action is cancelled.
-     */
     private boolean confirmSaveIfNeeded() {
         int index = getSelectedIndex();
         if (index != -1) {

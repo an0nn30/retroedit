@@ -1,6 +1,8 @@
 package com.github.an0nn30.retroedit.ui;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.github.an0nn30.retroedit.launchers.LaunchConfigManager;
+import com.github.an0nn30.retroedit.launchers.LaunchConfiguration;
 import com.github.an0nn30.retroedit.settings.Settings;
 import com.github.an0nn30.retroedit.ui.utils.FileManagerUtil;
 import com.github.an0nn30.retroedit.ui.components.Button;
@@ -14,26 +16,31 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * MainToolbar is a custom toolbar component that extends Panel.
- * It provides buttons for file operations such as New, Open, Save, and Refresh,
- * as well as placeholders for navigation and execution controls.
+ * It provides buttons for file operations as well as run execution controls.
  */
 public class MainToolbar extends Panel {
 
     private final EditorFrame editorFrame;
     private Panel toolbarPanel;
+    // Promote the configuration combo box to a field so it can be accessed later.
+    private JComboBox<String> selectConfiguration;
+    // Reference to the launch configuration manager.
+    private final LaunchConfigManager launchConfigManager;
 
     /**
      * Constructs a MainToolbar attached to the given EditorFrame.
-     * It installs the Flat IntelliJ Look and Feel and adds the toolbar buttons.
      *
-     * @param editorFrame the parent EditorFrame.
+     * @param editorFrame         the parent EditorFrame.
+     * @param launchConfigManager the manager that handles run configurations.
      */
-    public MainToolbar(EditorFrame editorFrame) {
+    public MainToolbar(EditorFrame editorFrame, LaunchConfigManager launchConfigManager) {
         super(editorFrame);
         this.editorFrame = editorFrame;
+        this.launchConfigManager = launchConfigManager;
         addComponent(initToolBar(), PanelPosition.LEFT);
     }
 
@@ -58,15 +65,21 @@ public class MainToolbar extends Panel {
 
         Button refreshButton = createButton("refresh", "Refresh", commonInsets, e -> refreshActiveFile());
 
-        // Create placeholder navigation and execution buttons.
+        // Create placeholder navigation buttons.
         Button backButton = createButton("back", null, commonInsets, e -> {});
         backButton.setEnabled(false);
         Button forwardButton = createButton("forward", null, commonInsets, e -> {});
         forwardButton.setEnabled(false);
-        JComboBox<String> selectConfiguration = new JComboBox<>();
-        selectConfiguration.setEnabled(false);
-        Button runButton = createButton("run", null, commonInsets, e -> {});
-        runButton.setEnabled(false);
+
+        // Create the configuration selection combo box.
+        selectConfiguration = new JComboBox<>();
+        // (Later, populate this combo box with configurations loaded from the JSON file.)
+        selectConfiguration.setEnabled(selectConfiguration.getItemCount() > 0);
+
+        // Create run button with our custom action listener.
+        Button runButton = createButton("run", null, commonInsets, e -> onRunButtonPressed());
+        runButton.setEnabled(true);
+
         Button stopButton = createButton("stop", null, commonInsets, e -> {});
         stopButton.setEnabled(false);
 
@@ -83,10 +96,76 @@ public class MainToolbar extends Panel {
         toolbarPanel.addComponent(selectConfiguration, PanelPosition.LEFT);
         toolbarPanel.addComponent(runButton, PanelPosition.LEFT);
         toolbarPanel.addComponent(stopButton, PanelPosition.LEFT);
-
         toolbarPanel.addComponent(toggleTerminalButton, PanelPosition.LEFT);
 
         return toolbarPanel;
+    }
+
+    /**
+     * Called when the run button is pressed.
+     * If a configuration is selected in the combo box, it executes that saved configuration.
+     * Otherwise, it pops up a dialog with built‑in configurations.
+     */
+    private void onRunButtonPressed() {
+        if (selectConfiguration.getItemCount() > 0) {
+            Object selected = selectConfiguration.getSelectedItem();
+            if (selected != null) {
+                String configName = selected.toString();
+                Optional<LaunchConfiguration> configOpt = launchConfigManager.getConfigurationByName(configName);
+                if (configOpt.isPresent()) {
+                    configOpt.get().execute();
+                } else {
+                    JOptionPane.showMessageDialog(editorFrame,
+                            "Run configuration \"" + configName + "\" not found.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(editorFrame,
+                        "No run configuration selected.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            // No saved configurations available; show built‑in configurations.
+            showBuiltInConfigDialog();
+        }
+    }
+
+    /**
+     * Displays a modal dialog with a list of built‑in configurations.
+     * The dialog steals focus and allows the user to select a configuration.
+     */
+    private void showBuiltInConfigDialog() {
+        JDialog dialog = new JDialog(editorFrame, "Select Built‑in Configuration", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.setSize(300, 200);
+        dialog.setLocationRelativeTo(editorFrame);
+
+        // Retrieve default configuration names from the manager.
+        java.util.List<String> builtInConfigs = launchConfigManager.getDefaultConfigNames();
+        JList<String> configList = new JList<>(builtInConfigs.toArray(new String[0]));
+        configList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        if (!builtInConfigs.isEmpty()) {
+            configList.setSelectedIndex(0);
+        }
+        JScrollPane scrollPane = new JScrollPane(configList);
+
+        JButton runBuiltInButton = new JButton("Run");
+        runBuiltInButton.addActionListener(e -> {
+            String selectedConfig = configList.getSelectedValue();
+            if (selectedConfig != null) {
+                launchConfigManager.executeDefaultConfiguration(selectedConfig);
+            }
+            dialog.dispose();
+        });
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(runBuiltInButton, BorderLayout.SOUTH);
+
+        dialog.getContentPane().add(panel);
+        dialog.setVisible(true);
     }
 
     /**
@@ -109,7 +188,6 @@ public class MainToolbar extends Panel {
         button.addActionListener(listener);
         return button;
     }
-
 
     /**
      * Refreshes the active file in the currently selected tab by re-reading its content.

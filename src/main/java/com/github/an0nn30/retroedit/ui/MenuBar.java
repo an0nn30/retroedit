@@ -110,7 +110,7 @@ public class MenuBar {
      * - Otherwise, close the tab and create a new untitled tab.
      */
     private void handleCloseTab() {
-        TabManager tabbedPane = editorFrame.getTabManager();
+        TextAreaTabManager tabbedPane = editorFrame.getTabManager();
         int tabCount = tabbedPane.getTabCount();
         if (tabCount > 1) {
             tabbedPane.closeCurrentTab();
