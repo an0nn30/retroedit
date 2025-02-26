@@ -4,11 +4,11 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.an0nn30.retroedit.launchers.LaunchConfigManager;
 import com.github.an0nn30.retroedit.launchers.LaunchConfiguration;
 import com.github.an0nn30.retroedit.settings.Settings;
-import com.github.an0nn30.retroedit.ui.utils.FileManagerUtil;
 import com.github.an0nn30.retroedit.ui.components.Button;
 import com.github.an0nn30.retroedit.ui.components.Panel;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
 import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
+import com.github.an0nn30.retroedit.ui.utils.FileUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -58,7 +58,7 @@ public class MainToolbar extends Panel {
                 editorFrame.getTabManager().addNewTab("Untitled", new TextArea(editorFrame)));
 
         Button openButton = createButton("open", "Open", commonInsets, e ->
-                FileManagerUtil.openFile(editorFrame));
+                FileUtils.openFileOrDirectory(editorFrame));
 
         Button saveButton = createButton("save", "Save", commonInsets, e ->
                 editorFrame.getTabManager().saveFile(false));

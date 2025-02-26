@@ -1,5 +1,8 @@
 package com.github.an0nn30.retroedit.ui.utils;
 
+import com.github.an0nn30.retroedit.logging.Logger;
+import com.github.an0nn30.retroedit.ui.EditorFrame;
+
 import javax.swing.*;
 import java.awt.FileDialog;
 import java.io.File;
@@ -15,29 +18,6 @@ public class FileUtils {
      */
     public static final String CURRENT_FILE_PROPERTY = "currentFile";
 
-    /**
-     * Opens a native file dialog for selecting a file.
-     * <p>
-     * This method uses {@link FileDialog} to present a modal "Open File" dialog.
-     * If the user selects a file, a {@link File} object representing the selected file is returned.
-     * Otherwise, it returns null.
-     * </p>
-     *
-     * @param parent the parent {@link JFrame} for the dialog.
-     * @return the selected file, or null if no file was selected.
-     */
-    public static File openFileDialog(JFrame parent) {
-        // Create a native file dialog for opening files.
-        FileDialog fileDialog = new FileDialog(parent, "Open File", FileDialog.LOAD);
-        fileDialog.setVisible(true);
-
-        // Retrieve the selected file's name and directory.
-        String fileName = fileDialog.getFile();
-        if (fileName != null) {
-            return new File(fileDialog.getDirectory(), fileName);
-        }
-        return null;
-    }
 
     /**
      * Opens a Swing-based file chooser dialog for saving a file.
@@ -56,6 +36,30 @@ public class FileUtils {
             return fileChooser.getSelectedFile();
         }
         return null;
+    }
+
+    /**
+     * Opens a file or directory using a JFileChooser.
+     * <p>
+     * If the selected file is a directory, it is set as the root directory
+     * of the DirectoryTree in the editor frame. Otherwise, the file is opened in a new tab.
+     * </p>
+     *
+     * @param editorFrame the EditorFrame from which the file chooser is invoked.
+     */
+    public static void openFileOrDirectory(EditorFrame editorFrame) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        int result = fileChooser.showOpenDialog(editorFrame);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            if (selectedFile.isDirectory()) {
+                editorFrame.getDirectoryTree().setRootDirectory(selectedFile);
+                Logger.getInstance().info(FileUtils.class, "Directory selected: " + selectedFile.getAbsolutePath());
+            } else {
+                editorFrame.getTabManager().openFile(selectedFile);
+            }
+        }
     }
 
     /**

@@ -1,6 +1,9 @@
 package com.github.an0nn30.retroedit.launchers;
 
 // LaunchConfiguration.java
+import com.github.an0nn30.retroedit.event.EventBus;
+import com.github.an0nn30.retroedit.event.EventType;
+
 import java.util.List;
 import java.util.Map;
 
@@ -58,12 +61,14 @@ public class LaunchConfiguration {
      * Currently, this is a dummy implementation that just prints out the details.
      */
     public void execute() {
+        EventBus.publish(EventType.PROCESS_RUNNING.name(), this.name, this);
         System.out.println("Executing configuration: " + name);
         System.out.println("Command: " + command);
         System.out.println("Arguments: " + args);
         if (env != null && !env.isEmpty()) {
             System.out.println("Environment: " + env);
         }
+        EventBus.publish(EventType.PROCESS_STOPPED.name(), this.name, this);
         // Dummy call to a Terminal widget execution method:
         // TerminalWidget.execute(command, args, env);
     }

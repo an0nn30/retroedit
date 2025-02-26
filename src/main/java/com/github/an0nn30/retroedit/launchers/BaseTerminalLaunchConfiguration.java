@@ -44,5 +44,6 @@ public abstract class BaseTerminalLaunchConfiguration implements DefaultRunConfi
         }
         this.editorFrame.getTerminalTabManager().setSelectedTabByTitle(terminalTitle);
         terminalLauncher.sendCommand(commands);
+        // TODO: Find a way to publish event when the commands are done.
     }
 }

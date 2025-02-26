@@ -22,15 +22,15 @@ public class Main {
             System.setProperty("sun.java2d.uiScale", String.valueOf(scaleFactor));
             System.out.println("Detected Linux scale factor: " + scaleFactor);
         }
-
         SwingUtilities.invokeLater(() -> {
-            EditorFrame frame;
-            if (args.length >= 1) {
-                frame = new EditorFrame(new File(args[0]));
-            } else {
-                frame = new EditorFrame();
-            }
-            frame.setVisible(true);
+        EditorFrame frame;
+        if (args.length >= 1) {
+            frame = new EditorFrame(new File(args[0]));
+        } else {
+            frame = new EditorFrame();
+        }
+        frame.setVisible(true);
+
         });
     }
 

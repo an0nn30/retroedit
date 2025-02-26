@@ -22,6 +22,7 @@ public class TerminalLauncher {
 
     private JediTermWidget terminalWidget;
     private TtyConnector ttyConnector;
+    private PtyProcess ptyProcess; // Store the underlying process
 
     /**
      * Initializes the terminal widget if not already created.
@@ -59,6 +60,25 @@ public class TerminalLauncher {
             ttyConnector.write(command);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Checks whether the underlying process is currently running.
+     *
+     * @return true if the process is running; false otherwise.
+     */
+    public boolean isProcessRunning() {
+        return ptyProcess != null && ptyProcess.isAlive();
+    }
+
+    /**
+     * Kills the underlying process if it is running.
+     * This can be used to stop the current execution.
+     */
+    public void killProcess() {
+        if (isProcessRunning()) {
+            ptyProcess.destroy();
         }
     }
 
@@ -129,11 +149,12 @@ public class TerminalLauncher {
                 envs = new HashMap<>(System.getenv());
                 envs.put("TERM", "xterm-256color");
             }
-            PtyProcess process = new PtyProcessBuilder()
+            // Create and store the process.
+            ptyProcess = new PtyProcessBuilder()
                     .setCommand(command)
                     .setEnvironment(envs)
                     .start();
-            return new PtyProcessTtyConnector(process, StandardCharsets.UTF_8);
+            return new PtyProcessTtyConnector(ptyProcess, StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

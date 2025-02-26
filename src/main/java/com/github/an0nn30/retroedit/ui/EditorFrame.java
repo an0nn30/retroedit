@@ -56,12 +56,10 @@ public class EditorFrame extends JFrame {
     private LaunchConfigManager launchConfigManager;
     private TerminalTabManager terminalTabManager;
 
-
-
     public EditorFrame(File openFile) {
         super("Retro Edit");
         this.openFile = openFile;
-        if (openFile.isFile() ) {
+        if (openFile.isFile()) {
             this.createUntitledTab = false;
         }
         // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
@@ -78,15 +76,13 @@ public class EditorFrame extends JFrame {
             return false;
         });
 
-        SwingUtilities.invokeLater(() -> {
-            initializeFrame();
-            initializeComponents();
-            layoutComponents();
-            registerEventSubscriptions();
-            startEditor();
-            disableAllToolbars(this);
-        });
-
+        // Initialize everything directly on the main thread.
+        initializeFrame();
+        initializeComponents();
+        layoutComponents();
+        registerEventSubscriptions();
+        startEditor();
+        disableAllToolbars(this);
     }
 
     /**
@@ -109,14 +105,13 @@ public class EditorFrame extends JFrame {
         });
 
         ThemeManager.setupWindowFrame(this, Settings.getInstance().getInterfaceTheme());
-        SwingUtilities.invokeLater(() -> {
-            initializeFrame();
-            initializeComponents();
-            layoutComponents();
-            registerEventSubscriptions();
-            startEditor();
-            disableAllToolbars(this);
-        });
+        // Initialize everything directly on the main thread.
+        initializeFrame();
+        initializeComponents();
+        layoutComponents();
+        registerEventSubscriptions();
+        startEditor();
+        disableAllToolbars(this);
     }
 
     /**
@@ -145,34 +140,7 @@ public class EditorFrame extends JFrame {
             directoryTree.setRootDirectory(this.openFile);
         searchController = null; // Lazy-load search controller
         lsf = LanguageSupportFactory.get();
-
-
-
-//        loadTerminalWidget();
     }
-
-    /**
-     * Asynchronously loads the terminal widget.
-     */
-//    private void loadTerminalWidget() {
-//        SwingWorker<JediTermWidget, Void> terminalLoader = new SwingWorker<>() {
-//            @Override
-//            protected JediTermWidget doInBackground() {
-//                return Terminal.createTerminalWidget(EditorFrame.this);
-//            }
-//
-//            @Override
-//            protected void done() {
-//                try {
-//                    terminal = get();
-//                    editorTerminalSplit.setBottomComponent(terminal);
-//                } catch (Exception ignored) {
-//                    // Exception handling can be added here if needed.
-//                }
-//            }
-//        };
-//        terminalLoader.execute();
-//    }
 
     /**
      * Lays out components within the frame.
@@ -186,11 +154,9 @@ public class EditorFrame extends JFrame {
 
         addComponentsToFrame();
 
-        // Defer hiding views to prevent blocking UI
-        SwingUtilities.invokeLater(() -> {
-            hideProjectView();
-            hideTerminal();
-        });
+        // Hide views immediately.
+        hideProjectView();
+        hideTerminal();
     }
 
     /**
@@ -288,10 +254,10 @@ public class EditorFrame extends JFrame {
     private void addComponentsToFrame() {
         setLayout(new BorderLayout());
         if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-        	TitleBar titleBar = new TitleBar(this, mainToolbar);
-        	add(titleBar, BorderLayout.NORTH);
+            TitleBar titleBar = new TitleBar(this, mainToolbar);
+            add(titleBar, BorderLayout.NORTH);
         } else {
-         	add(mainToolbar, BorderLayout.NORTH);
+            add(mainToolbar, BorderLayout.NORTH);
         }
         add(projectEditorSplit, BorderLayout.CENTER);
     }
@@ -300,16 +266,15 @@ public class EditorFrame extends JFrame {
      * Registers event subscriptions for the frame.
      */
     private void registerEventSubscriptions() {
-        SwingUtilities.invokeLater(() -> {
-            EventBus.subscribe(EventType.TAB_UPDATED.name(), eventRecord -> {
-                refreshSourceTree();
-                setTitle(eventRecord.data().toString());
-            });
-            EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), eventRecord -> {
-                refreshSourceTree();
-            });
-            EventBus.subscribe(EventType.THEME_CHANGED.name(), eventRecord -> ThemeManager.updateInterfaceTheme(this, eventRecord.data()));
+        EventBus.subscribe(EventType.TAB_UPDATED.name(), eventRecord -> {
+            refreshSourceTree();
+            setTitle(eventRecord.data().toString());
         });
+        EventBus.subscribe(EventType.SYNTAX_HIGHLIGHT_CHANGED.name(), eventRecord -> {
+            refreshSourceTree();
+        });
+        EventBus.subscribe(EventType.THEME_CHANGED.name(), eventRecord ->
+                ThemeManager.updateInterfaceTheme(this, eventRecord.data()));
     }
 
     /**
@@ -317,14 +282,12 @@ public class EditorFrame extends JFrame {
      * Note: The terminal will start in the minimized (hidden) state.
      */
     private void startEditor() {
-        SwingUtilities.invokeLater(() -> {
-            if (this.createUntitledTab)
-                textAreaTabManager.addNewTab("Untitled", new TextArea(this));
-            else
-                textAreaTabManager.openFile(this.openFile);
-            // Instead of toggling the terminal view (which would show it), we keep it minimized.
-            hideTerminal();
-        });
+        if (this.createUntitledTab)
+            textAreaTabManager.addNewTab("Untitled", new TextArea(this));
+        else
+            textAreaTabManager.openFile(this.openFile);
+        // Instead of toggling the terminal view (which would show it), we keep it minimized.
+        hideTerminal();
         ThemeManager.updateInterfaceTheme(this, null);
     }
 
@@ -383,6 +346,7 @@ public class EditorFrame extends JFrame {
      */
     public void toggleTerminalView() {
         isTerminalToggled = !isTerminalToggled;
+        System.out.println(isTerminalToggled);
         if (isTerminalToggled) {
             // When expanding, reapply the stored divider location.
             editorTerminalSplit.setDividerLocation(terminalViewDividerLocation);
@@ -444,80 +408,36 @@ public class EditorFrame extends JFrame {
      * current programming language.
      */
     public void refreshSourceTree() {
-        SwingUtilities.invokeLater(() -> {
-            if (sourceTree != null) {
-                sourceTree.uninstall();
-            }
-
-            String language = textAreaTabManager.getActiveTextArea().getSyntaxEditingStyle();
-
-            if (SYNTAX_STYLE_JAVA.equals(language)) {
-                sourceTree = new JavaOutlineTree();
-                LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
-                JavaLanguageSupport jls = (JavaLanguageSupport) support;
-                support.install(textAreaTabManager.getActiveTextArea());
-                jls.install(textAreaTabManager.getActiveTextArea());
-            } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT.equals(language)) {
-                sourceTree = new JavaScriptOutlineTree();
-            } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML.equals(language)) {
-                sourceTree = new XmlOutlineTree();
-            } else {
-                sourceTree = null;
-            }
-
-            if (sourceTree != null) {
-                sourceTree.listenTo(textAreaTabManager.getActiveTextArea());
-                treeSP.setViewportView(sourceTree);
-            } else {
-                JTree dummy = new JTree((TreeNode) null);
-                treeSP.setViewportView(dummy);
-            }
-            treeSP.revalidate();
-        });
-    }
-
-
-    /**
-     * Opens a file from the given file path by reading its contents,
-     * setting the syntax style based on the file extension, and adding
-     * a new tab with the file's name as the title.
-     *
-     * @param filePath the path of the file to open.
-     */
-    public void openFile(String filePath) {
-        try {
-            Path path = Paths.get(filePath);
-            String content = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-            // Create a new TextArea and set its text to the file content.
-            TextArea textArea = new TextArea(this);
-            textArea.setText(content);
-
-            // Determine the syntax style based on the file extension.
-            String fileName = path.getFileName().toString().toLowerCase();
-            if (fileName.endsWith(".java")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-            } else if (fileName.endsWith(".js")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
-            } else if (fileName.endsWith(".xml")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
-            } else if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
-            } else if (fileName.endsWith(".py")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_PYTHON);
-            } else if (fileName.endsWith(".json")) {
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
-            } else {
-                // Default to plain text if no known file type is detected.
-                textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
-            }
-
-            // Add a new tab using the file name as the tab title.
-            textAreaTabManager.addNewTab(fileName, textArea);
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error opening file: " + ex.getMessage(),
-                    "File Open Error", JOptionPane.ERROR_MESSAGE);
+        if (sourceTree != null) {
+            sourceTree.uninstall();
         }
+
+        String language = textAreaTabManager.getActiveTextArea().getSyntaxEditingStyle();
+
+        if (SYNTAX_STYLE_JAVA.equals(language)) {
+            sourceTree = new JavaOutlineTree();
+            LanguageSupport support = lsf.getSupportFor(SYNTAX_STYLE_JAVA);
+            JavaLanguageSupport jls = (JavaLanguageSupport) support;
+            support.install(textAreaTabManager.getActiveTextArea());
+            jls.install(textAreaTabManager.getActiveTextArea());
+        } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT.equals(language)) {
+            sourceTree = new JavaScriptOutlineTree();
+        } else if (org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_XML.equals(language)) {
+            sourceTree = new XmlOutlineTree();
+        } else {
+            sourceTree = null;
+        }
+
+        if (sourceTree != null) {
+            sourceTree.listenTo(textAreaTabManager.getActiveTextArea());
+            treeSP.setViewportView(sourceTree);
+        } else {
+            JTree dummy = new JTree((TreeNode) null);
+            treeSP.setViewportView(dummy);
+        }
+        treeSP.revalidate();
     }
+
 
     public boolean getIsTerminalToggled() {
         return isTerminalToggled;

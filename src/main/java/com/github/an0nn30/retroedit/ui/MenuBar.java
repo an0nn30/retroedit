@@ -1,12 +1,12 @@
 package com.github.an0nn30.retroedit.ui;
 
 import com.github.an0nn30.retroedit.ui.search.ProjectFileSearchDialog;
-import com.github.an0nn30.retroedit.ui.utils.FileManagerUtil;
 import com.github.an0nn30.retroedit.jforms.AboutDialog;
 import com.github.an0nn30.retroedit.jforms.Settings;
 import com.github.an0nn30.retroedit.ui.actions.FindDialogAction;
 import com.github.an0nn30.retroedit.ui.actions.GoToLineAction;
 import com.github.an0nn30.retroedit.ui.actions.ReplaceDialogAction;
+import com.github.an0nn30.retroedit.ui.utils.FileUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -64,7 +64,7 @@ public class MenuBar {
         // Open menu item: uses FileManagerUtil.
         JMenuItem openItem = createMenuItem("Open",
                 KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()),
-                e -> FileManagerUtil.openFile(editorFrame));
+                e -> FileUtils.openFileOrDirectory(editorFrame));
         fileMenu.add(openItem);
 
         // Save menu item.

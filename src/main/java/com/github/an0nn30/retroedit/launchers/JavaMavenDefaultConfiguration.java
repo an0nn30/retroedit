@@ -1,5 +1,7 @@
 package com.github.an0nn30.retroedit.launchers;
 
+import com.github.an0nn30.retroedit.event.EventBus;
+import com.github.an0nn30.retroedit.event.EventType;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
 import javax.swing.JOptionPane;
 import org.w3c.dom.Document;
@@ -28,6 +30,7 @@ public class JavaMavenDefaultConfiguration extends BaseTerminalLaunchConfigurati
 
     @Override
     public void execute() {
+        EventBus.publish(EventType.PROCESS_RUNNING.name(), this.name, this);
         // 1. Retrieve the project root directory.
         File projectRoot = editorFrame.getDirectoryTree().getRootDirectory();
         if (projectRoot == null) {
