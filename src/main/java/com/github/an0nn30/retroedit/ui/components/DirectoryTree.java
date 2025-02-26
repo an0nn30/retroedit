@@ -526,13 +526,13 @@ public class DirectoryTree extends JTree {
                     File f = (File) userObj;
                     label = f.getName();
                     if (f.isDirectory()) {
-                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("folder")));
+                        setIcon(new FlatSVGIcon(ThemeManager.retroThemeIcons.get("folder")));
                     } else if (label.toLowerCase().endsWith(".java")) {
-                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("java-file")));
+                        setIcon(new FlatSVGIcon(ThemeManager.retroThemeIcons.get("java-file")));
                     } else if (label.toLowerCase().endsWith(".xml")) {
-                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("xml-file")));
+                        setIcon(new FlatSVGIcon(ThemeManager.retroThemeIcons.get("xml-file")));
                     } else {
-                        setIcon(new FlatSVGIcon(ThemeManager.icons.get("empty-type")));
+                        setIcon(new FlatSVGIcon(ThemeManager.retroThemeIcons.get("empty-type")));
                     }
                 } else {
                     label = userObj.toString();

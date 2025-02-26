@@ -1,5 +1,6 @@
 # Retro Edit
 ![alt text](https://github.com/an0nn30/retroedit/blob/main/screenshot.png?raw=true)
+![alt text](https://github.com/an0nn30/retroedit/blob/main/screenshot2.png?raw=true)
 
 
 Retro Edit is a lightweight, customizable code editor built in Java using Swing. It provides a modern, efficient coding environment with advanced features such as syntax highlighting, code folding, auto-completion, and an integrated file manager. The application uses a modular architecture with decoupled components that communicate via an event bus, making it easy to extend and maintain.

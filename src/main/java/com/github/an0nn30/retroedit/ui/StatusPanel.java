@@ -55,7 +55,7 @@ public class StatusPanel extends Panel {
      */
     private JButton createToggleTerminalButton() {
         // Create a button using the terminal icon from the ThemeManager.
-        JButton button = new JButton(new FlatSVGIcon(ThemeManager.icons.get("terminal"), 18, 18));
+        JButton button = new JButton(new FlatSVGIcon(ThemeManager.retroThemeIcons.get("terminal"), 18, 18));
         // When clicked, the button toggles the terminal view in the editor.
         button.addActionListener(e -> editorFrame.toggleTerminalView());
         return button;

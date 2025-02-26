@@ -1,6 +1,7 @@
 package com.github.an0nn30.retroedit.ui;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.github.an0nn30.retroedit.settings.Settings;
 import com.github.an0nn30.retroedit.ui.utils.FileManagerUtil;
 import com.github.an0nn30.retroedit.ui.components.Button;
 import com.github.an0nn30.retroedit.ui.components.Panel;
@@ -22,6 +23,7 @@ import java.io.IOException;
 public class MainToolbar extends Panel {
 
     private final EditorFrame editorFrame;
+    private Panel toolbarPanel;
 
     /**
      * Constructs a MainToolbar attached to the given EditorFrame.
@@ -42,7 +44,7 @@ public class MainToolbar extends Panel {
      */
     private Panel initToolBar() {
         // Common insets for most buttons.
-        final Insets commonInsets = new Insets(0, 0, 0, 0);
+        final Insets commonInsets = new Insets(1, 2, 1, 2);
 
         // Create file operation buttons.
         Button newButton = createButton("new", null, new Insets(0, 2, 0, 2), e ->
@@ -71,7 +73,7 @@ public class MainToolbar extends Panel {
         Button toggleTerminalButton = createButton("terminal", null, commonInsets, e -> editorFrame.toggleTerminalView());
 
         // Assemble the toolbar panel.
-        Panel toolbarPanel = new Panel(editorFrame, 0, 0);
+        toolbarPanel = new Panel(editorFrame, 0, 0);
         toolbarPanel.addComponent(newButton, PanelPosition.LEFT);
         toolbarPanel.addComponent(openButton, PanelPosition.LEFT);
         toolbarPanel.addComponent(saveButton, PanelPosition.LEFT);
@@ -82,7 +84,7 @@ public class MainToolbar extends Panel {
         toolbarPanel.addComponent(runButton, PanelPosition.LEFT);
         toolbarPanel.addComponent(stopButton, PanelPosition.LEFT);
 
-        toolbarPanel.addComponent(toggleTerminalButton, PanelPosition.RIGHT);
+        toolbarPanel.addComponent(toggleTerminalButton, PanelPosition.LEFT);
 
         return toolbarPanel;
     }
@@ -98,14 +100,16 @@ public class MainToolbar extends Panel {
      * @return a new Button instance.
      */
     private Button createButton(String iconKey, String text, Insets insets, java.awt.event.ActionListener listener) {
-        FlatSVGIcon icon = new FlatSVGIcon(ThemeManager.icons.get(iconKey), 18, 18);
+        String interfaceTheme = Settings.getInstance().getInterfaceTheme();
+        FlatSVGIcon icon = ThemeManager.getIconForAction(iconKey, 16, 16);
         Button button = new Button(icon, insets);
-        if (text != null) {
+        if (text != null && interfaceTheme.equalsIgnoreCase("retro")) {
             button.setText(text);
         }
         button.addActionListener(listener);
         return button;
     }
+
 
     /**
      * Refreshes the active file in the currently selected tab by re-reading its content.

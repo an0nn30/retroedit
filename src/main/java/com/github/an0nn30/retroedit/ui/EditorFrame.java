@@ -79,7 +79,6 @@ public class EditorFrame extends JFrame {
             return false;
         });
 
-//        ThemeManager.setupWindowFrame(this);
         SwingUtilities.invokeLater(() -> {
             initializeFrame();
             initializeComponents();
@@ -90,6 +89,7 @@ public class EditorFrame extends JFrame {
         });
 
     }
+
     /**
      * Constructs the EditorFrame and initializes the UI.
      */

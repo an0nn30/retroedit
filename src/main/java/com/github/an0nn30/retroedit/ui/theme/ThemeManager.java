@@ -2,6 +2,7 @@ package com.github.an0nn30.retroedit.ui.theme;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.an0nn30.retroedit.logging.Logger;
 import com.github.an0nn30.retroedit.settings.Settings;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
@@ -10,6 +11,7 @@ import javax.swing.*;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * ThemeManager is a utility class responsible for managing UI themes and icon resources.
@@ -20,7 +22,8 @@ public class ThemeManager {
     /**
      * A mapping of icon names to their resource paths.
      */
-    public static final Map<String, String> icons;
+    public static final Map<String, String> retroThemeIcons;
+    public static final Map<String, String> defaultThemeIcons;
 
     static {
         Map<String, String> tempIcons = new HashMap<>();
@@ -39,8 +42,28 @@ public class ThemeManager {
         tempIcons.put("folder", "icons/folder.svg");
         tempIcons.put("empty-type", "icons/any_type.svg");
         tempIcons.put("xml-file", "icons/xml.svg");
-        icons = Collections.unmodifiableMap(tempIcons);
+        retroThemeIcons = Collections.unmodifiableMap(tempIcons);
+        tempIcons.clear();
+
+        tempIcons.put("open", "icons/menu-open_dark.svg");
+        tempIcons.put("new", "icons/edit_dark.svg");
+        tempIcons.put("save", "icons/menu-saveall_dark.svg");
+        tempIcons.put("back", "icons/back.svg");
+        tempIcons.put("forward", "icons/forward.svg");
+        tempIcons.put("run", "icons/execute_dark.svg");
+        tempIcons.put("stop", "icons/suspend.svg");
+        tempIcons.put("terminal", "icons/OpenTerminal_13x13_dark.svg");
+        tempIcons.put("refresh", "icons/refresh.svg");
+        tempIcons.put("file", "icons/any_type.svg");
+        tempIcons.put("tab-close", "icons/close_dark.svg");
+        tempIcons.put("java-file", "icons/java.svg");
+        tempIcons.put("folder", "icons/folder.svg");
+        tempIcons.put("empty-type", "icons/any_type.svg");
+        tempIcons.put("xml-file", "icons/xml.svg");
+        defaultThemeIcons = Collections.unmodifiableMap(tempIcons);
     }
+
+
 
     /**
      * Private constructor to prevent instantiation.
@@ -72,13 +95,20 @@ public class ThemeManager {
 
             SwingUtilities.updateComponentTreeUI(frame);
 
-//            FlatIntelliJLaf.install();
-//            UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-//            frame.setUndecorated(true);
-//            frame.getRootPane().setWindowDecorationStyle(JRootPane.FRAME);
         } catch (Exception e) {
             Logger.getInstance().error(ThemeManager.class, "Failed to set LookAndFeel: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    public static FlatSVGIcon getIconForAction(String action, int width, int height) {
+        String theme = Settings.getInstance().getInterfaceTheme();
+        try {
+            Map<String, String> icons = Objects.equals(theme, "Light") || Objects.equals(theme, "Dark") ? defaultThemeIcons : retroThemeIcons;
+            return new FlatSVGIcon(icons.get(action), width, height);
+        } catch (Exception e) {
+            Logger.getInstance().error(ThemeManager.class, "Failed to load icon for action: " + action);
+            return null;
         }
     }
 

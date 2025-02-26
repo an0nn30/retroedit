@@ -4,12 +4,10 @@ import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventType;
 import com.github.an0nn30.retroedit.logging.Logger;
-import com.github.an0nn30.retroedit.settings.Constants;
 import com.github.an0nn30.retroedit.settings.Settings;
 import com.github.an0nn30.retroedit.ui.components.TextArea;
 import com.github.an0nn30.retroedit.ui.theme.ThemeManager;
 import com.github.an0nn30.retroedit.ui.utils.FileUtils;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
@@ -67,7 +65,7 @@ public class TabManager extends JTabbedPane {
      */
     private static Icon loadTabIcon() {
         try {
-            return new FlatSVGIcon(ThemeManager.icons.get("empty-type"), 20, 20);
+            return new FlatSVGIcon(ThemeManager.retroThemeIcons.get("empty-type"), 20, 20);
         } catch (Exception e) {
             Logger.getInstance().error(TabManager.class, "Error loading tab icon: " + e.getMessage());
             return null;
