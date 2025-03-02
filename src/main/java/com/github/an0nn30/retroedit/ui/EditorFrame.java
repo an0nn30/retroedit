@@ -25,11 +25,15 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
 
@@ -37,6 +41,9 @@ import static org.fife.ui.rsyntaxtextarea.SyntaxConstants.SYNTAX_STYLE_JAVA;
  * The main editor frame for the Retro Edit application.
  */
 public class EditorFrame extends JFrame {
+
+    // Keep track of all open editor windows.
+    private static final List<EditorFrame> openFrames = new ArrayList<>();
 
     private MainToolbar mainToolbar;
     private TextAreaTabManager textAreaTabManager;
@@ -61,9 +68,16 @@ public class EditorFrame extends JFrame {
         this.openFile = openFile;
         if (openFile.exists() && openFile.isFile()) {
             this.createUntitledTab = false;
-        } else if (!openFile.exists()) {
-
         }
+        // Add this frame to the list of open windows.
+        openFrames.add(this);
+        // When this window is closed, remove it from the list.
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                openFrames.remove(EditorFrame.this);
+            }
+        });
         // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
         // even if the terminal widget currently has focus.
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
@@ -92,6 +106,14 @@ public class EditorFrame extends JFrame {
      */
     public EditorFrame() {
         super("Retro Edit");
+        // Add this frame to the list of open windows.
+        openFrames.add(this);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                openFrames.remove(EditorFrame.this);
+            }
+        });
         // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
         // even if the terminal widget currently has focus.
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(e -> {
@@ -123,7 +145,8 @@ public class EditorFrame extends JFrame {
         MacUtils macUtils = new MacUtils();
         macUtils.setMacTitleBar(this);
         setSize(700, 700);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        // Use DISPOSE_ON_CLOSE so that closing one window doesn't exit the application.
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
     /**
@@ -330,6 +353,22 @@ public class EditorFrame extends JFrame {
     }
 
     /**
+     * Opens the specified file in a new tab.
+     *
+     * @param file the file to open.
+     */
+    public void openFileInNewTab(File file) {
+        textAreaTabManager.openFile(file);
+    }
+
+    /**
+     * Returns an existing open EditorFrame if one exists; otherwise returns null.
+     */
+    public static EditorFrame getAnyOpenFrame() {
+        return openFrames.isEmpty() ? null : openFrames.get(0);
+    }
+
+    /**
      * Toggles the visibility of the project view.
      */
     public void toggleProjectView() {
@@ -441,7 +480,6 @@ public class EditorFrame extends JFrame {
         }
         treeSP.revalidate();
     }
-
 
     public boolean getIsTerminalToggled() {
         return isTerminalToggled;

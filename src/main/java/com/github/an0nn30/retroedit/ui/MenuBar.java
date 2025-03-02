@@ -7,7 +7,6 @@ import com.github.an0nn30.retroedit.ui.actions.FindDialogAction;
 import com.github.an0nn30.retroedit.ui.actions.GoToLineAction;
 import com.github.an0nn30.retroedit.ui.actions.ReplaceDialogAction;
 import com.github.an0nn30.retroedit.ui.utils.FileUtils;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -136,13 +135,18 @@ public class MenuBar {
     private JMenu createViewMenu() {
         JMenu viewMenu = new JMenu("View");
 
+        // New Window menu item: opens a new editor window.
+        JMenuItem newWindowItem = createMenuItem("New Window",
+                KeyStroke.getKeyStroke(KeyEvent.VK_N,
+                        Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK),
+                e -> new EditorFrame().setVisible(true));
+        viewMenu.add(newWindowItem);
+
         // Toggle Terminal menu item.
         JMenuItem toggleTerminal = createMenuItem("Toggle Terminal",
                 KeyStroke.getKeyStroke(KeyEvent.VK_COMMA,
                         Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK),
-                e -> {
-                     editorFrame.toggleTerminalView();
-                });
+                e -> editorFrame.toggleTerminalView());
         viewMenu.add(toggleTerminal);
 
         // Toggle Project View menu item.

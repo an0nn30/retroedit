@@ -3,10 +3,12 @@ package com.github.an0nn30.retroedit;
 import com.github.an0nn30.retroedit.settings.Settings;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
 
-import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
+import java.awt.desktop.OpenFilesEvent;
+import java.awt.desktop.OpenFilesHandler;
+import javax.swing.*;
 import java.io.File;
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Enumeration;
@@ -22,15 +24,39 @@ public class Main {
             System.setProperty("sun.java2d.uiScale", String.valueOf(scaleFactor));
             System.out.println("Detected Linux scale factor: " + scaleFactor);
         }
-        SwingUtilities.invokeLater(() -> {
-        EditorFrame frame;
-        if (args.length >= 1) {
-            frame = new EditorFrame(new File(args[0]));
-        } else {
-            frame = new EditorFrame();
-        }
-        frame.setVisible(true);
 
+        // Register an OpenFilesHandler for macOS (Java 9+)
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.APP_OPEN_FILE)) {
+            Desktop.getDesktop().setOpenFileHandler(new OpenFilesHandler() {
+                @Override
+                public void openFiles(OpenFilesEvent e) {
+                    if (!e.getFiles().isEmpty()) {
+                        SwingUtilities.invokeLater(() -> {
+                            File file = e.getFiles().get(0);
+                            EditorFrame frame = EditorFrame.getAnyOpenFrame();
+                            if (frame != null) {
+                                frame.openFileInNewTab(file);
+                            } else {
+                                new EditorFrame(file).setVisible(true);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            if (args.length >= 1) {
+                File file = new File(args[0]);
+                EditorFrame frame = EditorFrame.getAnyOpenFrame();
+                if (frame != null) {
+                    frame.openFileInNewTab(file);
+                } else {
+                    new EditorFrame(file).setVisible(true);
+                }
+            } else {
+                new EditorFrame().setVisible(true);
+            }
         });
     }
 
