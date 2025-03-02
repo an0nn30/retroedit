@@ -179,6 +179,15 @@ public class TextAreaTabManager extends BaseTabManager<TextArea> {
         }
     }
 
+    public void setSelectedTabByTitle(String title) {
+        for (int i = 0; i < getTabCount(); i++) {
+            if (getTitleAt(i).equals(title)) {
+                setSelectedIndex(i);
+                return;
+            }
+        }
+    }
+
     private void requestFocusOnActiveTextArea() {
         TextArea activeTextArea = getActiveTextArea();
         if (activeTextArea != null) {
@@ -211,6 +220,14 @@ public class TextAreaTabManager extends BaseTabManager<TextArea> {
     }
 
     private void openFileInNewTab(File file) {
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Could not create new file: " + file.getAbsolutePath(), "Error", JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
+            }
+        }
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             TextArea newTextArea = createTextArea();
             newTextArea.setActiveFile(file);

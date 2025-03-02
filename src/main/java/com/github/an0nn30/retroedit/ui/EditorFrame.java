@@ -59,8 +59,10 @@ public class EditorFrame extends JFrame {
     public EditorFrame(File openFile) {
         super("Retro Edit");
         this.openFile = openFile;
-        if (openFile.isFile()) {
+        if (openFile.exists() && openFile.isFile()) {
             this.createUntitledTab = false;
+        } else if (!openFile.exists()) {
+
         }
         // Install a global key event dispatcher so that cmd+shift+, toggles the terminal view,
         // even if the terminal widget currently has focus.
@@ -282,10 +284,12 @@ public class EditorFrame extends JFrame {
      * Note: The terminal will start in the minimized (hidden) state.
      */
     private void startEditor() {
-        if (this.createUntitledTab)
-            textAreaTabManager.addNewTab("Untitled", new TextArea(this));
-        else
+        if (openFile != null && openFile.isFile())
             textAreaTabManager.openFile(this.openFile);
+        else if (openFile != null && !openFile.exists())
+            textAreaTabManager.openFile(this.openFile);
+        else
+            textAreaTabManager.addNewTab("Untitled", new TextArea(this));
         // Instead of toggling the terminal view (which would show it), we keep it minimized.
         hideTerminal();
         ThemeManager.updateInterfaceTheme(this, null);

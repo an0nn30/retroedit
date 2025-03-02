@@ -1,7 +1,8 @@
-package com.github.an0nn30.retroedit.launchers;
+package com.github.an0nn30.retroedit.launchers.java;
 
 import com.github.an0nn30.retroedit.event.EventBus;
 import com.github.an0nn30.retroedit.event.EventType;
+import com.github.an0nn30.retroedit.launchers.BaseTerminalLaunchConfiguration;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
 import javax.swing.JOptionPane;
 import org.w3c.dom.Document;
@@ -33,6 +34,7 @@ public class JavaMavenDefaultConfiguration extends BaseTerminalLaunchConfigurati
         EventBus.publish(EventType.PROCESS_RUNNING.name(), this.name, this);
         // 1. Retrieve the project root directory.
         File projectRoot = editorFrame.getDirectoryTree().getRootDirectory();
+
         if (projectRoot == null) {
             JOptionPane.showMessageDialog(editorFrame,
                     "Project root directory not found. Cannot locate pom.xml.",
@@ -58,7 +60,7 @@ public class JavaMavenDefaultConfiguration extends BaseTerminalLaunchConfigurati
             return;
         }
         // 4. Build the command string.
-        String commands = "mvn compile\nmvn package\njava -jar " + jarPath + "\n";
+        String commands = "cd " + projectRoot + "\n" + "mvn compile\nmvn package\njava -jar " + jarPath + "\n";
         String terminalTitle = "Run: " + getName();
         // 5. Run the commands in the terminal using the base class method.
         runInTerminal(terminalTitle, commands);

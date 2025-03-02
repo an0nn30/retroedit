@@ -2,6 +2,8 @@ package com.github.an0nn30.retroedit.launchers;
 
 import com.jediterm.pty.PtyProcessTtyConnector;
 import com.jediterm.terminal.Questioner;
+import com.jediterm.terminal.TerminalColor;
+import com.jediterm.terminal.TextStyle;
 import com.jediterm.terminal.TtyConnector;
 import com.jediterm.terminal.emulator.ColorPalette;
 import com.jediterm.terminal.ui.JediTermWidget;
@@ -89,11 +91,12 @@ public class TerminalLauncher {
      * @return the created JediTermWidget.
      */
     private @NotNull JediTermWidget createTerminalWidget(@NotNull TtyConnector connector) {
-        JediTermWidget widget = new JediTermWidget(80, 24, new DefaultSettingsProvider() {
+        JediTermWidget widget = new JediTermWidget(80, 20, new DefaultSettingsProvider() {
             @Override
             public ColorPalette getTerminalColorPalette() {
                 return new ColorPalette() {
-                    private final Color[] monokaiDarkColors = new Color[]{
+                    // Define the dark variant of the Monokai 16-color ANSI palette.
+                    private final Color[] monokaiDarkColors = new Color[] {
                             new Color(0x1E, 0x1F, 0x1E),  // 0: Dark Background
                             new Color(0xF9, 0x26, 0x72),  // 1: Red
                             new Color(0xA6, 0xE2, 0x2E),  // 2: Green
@@ -102,7 +105,7 @@ public class TerminalLauncher {
                             new Color(0xAE, 0x81, 0xFF),  // 5: Magenta
                             new Color(0xA1, 0xEF, 0xE4),  // 6: Cyan
                             new Color(0xF8, 0xF8, 0xF2),  // 7: Foreground (Light)
-                            new Color(0x55, 0x55, 0x55),  // 8: Bright Black
+                            new Color(0x55, 0x55, 0x55),  // 8: Bright Black (darker gray)
                             new Color(0xF9, 0x26, 0x72),  // 9: Bright Red
                             new Color(0xA6, 0xE2, 0x2E),  // 10: Bright Green
                             new Color(0xF4, 0xBF, 0x75),  // 11: Bright Yellow
@@ -123,7 +126,14 @@ public class TerminalLauncher {
                     }
                 };
             }
+
+            @Override
+            public TextStyle getDefaultStyle() {
+                // Use the Monokai dark theme: foreground (index 7) and background (index 0)
+                return new TextStyle(TerminalColor.index(7), TerminalColor.index(0));
+            }
         });
+;
         widget.setTtyConnector(connector);
         return widget;
     }

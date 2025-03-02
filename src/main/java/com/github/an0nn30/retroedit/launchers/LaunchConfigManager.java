@@ -1,5 +1,6 @@
 package com.github.an0nn30.retroedit.launchers;
 
+import com.github.an0nn30.retroedit.launchers.java.JavaMavenDefaultConfiguration;
 import com.github.an0nn30.retroedit.ui.EditorFrame;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
