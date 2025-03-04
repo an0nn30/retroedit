@@ -6,12 +6,12 @@
 VERSION := $(shell sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' pom.xml | head -n 1)
 
 # Variables
-APP_NAME = RetroEdit
-MAIN_JAR = retroedit-$(VERSION)-jar-with-dependencies.jar
-MAIN_CLASS = com.github.an0nn30.retroedit.Main
-ICON_PATH_MAC = src/main/resources/retro_edit_mac_icns.icns
-ICON_PATH_WIN = src/main/resources/retro.ico
-ICON_PATH_LINUX = src/main/resources/retroedit.png
+APP_NAME = jPad
+MAIN_JAR = jpad-$(VERSION)-jar-with-dependencies.jar
+MAIN_CLASS = com.github.an0nn30.jpad.Main
+ICON_PATH_MAC = src/main/resources/jpad.icns
+ICON_PATH_WIN = src/main/resources/jpa.ico
+ICON_PATH_LINUX = src/main/resources/jpad.png
 APP_VERSION = $(VERSION)
 VENDOR = "An0nn30"
 OUTPUT_DIR = output/

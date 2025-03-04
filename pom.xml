@@ -5,13 +5,13 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.an0nn30</groupId>
-    <artifactId>retroedit</artifactId>
-    <version>1.2.3</version>
+    <artifactId>jpad</artifactId>
+    <version>1.2.4</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <main.class>com.github.an0nn30.retroedit.Main</main.class>
+        <main.class>com.github.an0nn30.jpad.Main</main.class>
         <native.maven.plugin.version>0.10.5</native.maven.plugin.version>
     </properties>
     <repositories>
@@ -176,7 +176,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.an0nn30.retroedit.Main</mainClass>
+                            <mainClass>com.github.an0nn30.jpad.Main</mainClass>
                             <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
@@ -196,7 +196,7 @@
                             <transformers>
                                 <!-- This transformer sets the Main-Class in the manifest -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.github.an0nn30.retroedit.Main</mainClass>
+                                    <mainClass>com.github.an0nn30.jpad.Main</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -205,38 +205,4 @@
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>native</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <version>${native.maven.plugin.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <verbose>true</verbose>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>build-native</id>
-                                <goals>
-                                    <goal>compile-no-fork</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                            <execution>
-                                <id>test-native</id>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                                <phase>test</phase>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

@@ -41,35 +41,35 @@ Retro Edit is a lightweight, customizable code editor built in Java using Swing.
 
 ## Project Structure
 
-- **`com.github.an0nn30.retroedit.ui`**  
+- **`com.github.an0nn30.jpad.ui`**  
   Core UI components including the main editor frame, menu bar, and status panel.
 
-- **`com.github.an0nn30.retroedit.ui.actions`**  
+- **`com.github.an0nn30.jpad.ui.actions`**  
   Action classes for commands such as Find, Replace, and Go-To Line.
 
-- **`com.github.an0nn30.retroedit.ui.components`**  
+- **`com.github.an0nn30.jpad.ui.components`**  
   Custom Swing components:
     - **`TextArea`** – An extended RSyntaxTextArea with auto-completion and dynamic settings updates.
     - **`DirectoryTree`** – A file tree with drag-and-drop and context menu support.
     - **`Panel`** – A custom panel with pre-defined layouts and utility methods.
     - **`StatusPanel`** – Displays terminal toggling, file type selection, and status information.
 
-- **`com.github.an0nn30.retroedit.ui.search`**  
+- **`com.github.an0nn30.jpad.ui.search`**  
   Contains find and replace dialogs and toolbars for search functionality.
 
-- **`com.github.an0nn30.retroedit.ui.theme`**  
+- **`com.github.an0nn30.jpad.ui.theme`**  
   Manages themes and icon resources.
 
-- **`com.github.an0nn30.retroedit.ui.utils`**  
+- **`com.github.an0nn30.jpad.ui.utils`**  
   Utility classes for file management and common UI operations.
 
-- **`com.github.an0nn30.retroedit.logging`**  
+- **`com.github.an0nn30.jpad.logging`**  
   Custom logging implementation.
 
-- **`com.github.an0nn30.retroedit.event`**  
+- **`com.github.an0nn30.jpad.event`**  
   A simple event bus for decoupled communication between components.
 
-- **`com.github.an0nn30.retroedit.settings`**  
+- **`com.github.an0nn30.jpad.settings`**  
   Application settings management.
 
 ## How to Run
