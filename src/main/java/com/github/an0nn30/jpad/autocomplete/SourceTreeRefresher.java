@@ -24,12 +24,18 @@ public class SourceTreeRefresher {
     private final JScrollPane treeSP;
     private final LanguageSupportFactory lsf;
     private AbstractSourceTree sourceTree;
+    private boolean lspActive;
 
     public SourceTreeRefresher(TextAreaTabManager textAreaTabManager, DirectoryTree directoryTree, JScrollPane treeSP) {
+        this(textAreaTabManager, directoryTree, treeSP, false);
+    }
+
+    public SourceTreeRefresher(TextAreaTabManager textAreaTabManager, DirectoryTree directoryTree, JScrollPane treeSP, boolean lspActive) {
         this.textAreaTabManager = textAreaTabManager;
         this.directoryTree = directoryTree;
         this.treeSP = treeSP;
         this.lsf = LanguageSupportFactory.get();
+        this.lspActive = lspActive;
     }
 
     public void refresh() {
@@ -41,28 +47,32 @@ public class SourceTreeRefresher {
 
         if (SyntaxConstants.SYNTAX_STYLE_JAVA.equals(language)) {
             sourceTree = new JavaOutlineTree();
-            LanguageSupport support = lsf.getSupportFor(SyntaxConstants.SYNTAX_STYLE_JAVA);
-            JavaLanguageSupport jls = (JavaLanguageSupport) support;
-            support.setAutoActivationEnabled(true);
-            support.setAutoActivationDelay(0);
-            support.install(textAreaTabManager.getActiveTextArea());
 
-            try {
-                // Determine the starting directory: prefer directoryTree.getRootDirectory() if available.
-                File currentDir = (directoryTree != null && directoryTree.getRootDirectory() != null)
-                        ? directoryTree.getRootDirectory()
-                        : new File(System.getProperty("user.dir"));
+            // Only install JavaLanguageSupport (autocomplete via JarFileFinder) when LSP is NOT active.
+            // When LSP is active, completion is handled by LspCompletionProvider instead.
+            if (!lspActive) {
+                LanguageSupport support = lsf.getSupportFor(SyntaxConstants.SYNTAX_STYLE_JAVA);
+                JavaLanguageSupport jls = (JavaLanguageSupport) support;
+                support.setAutoActivationEnabled(true);
+                support.setAutoActivationDelay(0);
+                support.install(textAreaTabManager.getActiveTextArea());
 
-                JarFileFinder jarFinder = new JarFileFinder();
-                Set<File> jarFiles = jarFinder.findJarFiles(currentDir);
+                try {
+                    File currentDir = (directoryTree != null && directoryTree.getRootDirectory() != null)
+                            ? directoryTree.getRootDirectory()
+                            : new File(System.getProperty("user.dir"));
 
-                for (File file : jarFiles) {
-                    jls.getJarManager().addClassFileSource(file);
+                    JarFileFinder jarFinder = new JarFileFinder();
+                    Set<File> jarFiles = jarFinder.findJarFiles(currentDir);
+
+                    for (File file : jarFiles) {
+                        jls.getJarManager().addClassFileSource(file);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
+                jls.install(textAreaTabManager.getActiveTextArea());
             }
-            jls.install(textAreaTabManager.getActiveTextArea());
         } else if (SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT.equals(language)) {
             sourceTree = new JavaScriptOutlineTree();
         } else if (SyntaxConstants.SYNTAX_STYLE_XML.equals(language)) {

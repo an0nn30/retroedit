@@ -4,6 +4,7 @@ import com.github.an0nn30.jpad.autocomplete.SourceTreeRefresher;
 import com.github.an0nn30.jpad.event.EventBus;
 import com.github.an0nn30.jpad.event.EventType;
 import com.github.an0nn30.jpad.launchers.LaunchConfigManager;
+import com.github.an0nn30.jpad.lsp.LspOrchestrator;
 import com.github.an0nn30.jpad.settings.Settings;
 import com.github.an0nn30.jpad.ui.components.DirectoryTree;
 import com.github.an0nn30.jpad.ui.components.TextArea;
@@ -63,6 +64,8 @@ public class EditorFrame extends JFrame {
     private File openFile;
     private LaunchConfigManager launchConfigManager;
     private TerminalTabManager terminalTabManager;
+    private LspOrchestrator lspOrchestrator;
+    private StatusPanel statusPanel;
 
     public EditorFrame(File openFile) {
         super("Retro Edit");
@@ -70,13 +73,14 @@ public class EditorFrame extends JFrame {
         if (openFile.exists() && openFile.isFile()) {
             this.createUntitledTab = false;
         }
-       
+
         // Add this frame to the list of open windows.
         openFrames.add(this);
         // When this window is closed, remove it from the list.
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
+                if (lspOrchestrator != null) lspOrchestrator.shutdown();
                 openFrames.remove(EditorFrame.this);
             }
         });
@@ -114,6 +118,7 @@ public class EditorFrame extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
+                if (lspOrchestrator != null) lspOrchestrator.shutdown();
                 openFrames.remove(EditorFrame.this);
             }
         });
@@ -169,6 +174,8 @@ public class EditorFrame extends JFrame {
             directoryTree.setRootDirectory(this.openFile);
         searchController = null; // Lazy-load search controller
         lsf = LanguageSupportFactory.get();
+        lspOrchestrator = new LspOrchestrator(textAreaTabManager);
+        statusPanel = new StatusPanel(this);
     }
 
     /**
@@ -289,6 +296,7 @@ public class EditorFrame extends JFrame {
             add(mainToolbar, BorderLayout.NORTH);
         }
         add(projectEditorSplit, BorderLayout.CENTER);
+        add(statusPanel, BorderLayout.SOUTH);
     }
 
     /**
@@ -454,11 +462,16 @@ public class EditorFrame extends JFrame {
      * Delegates the refreshing of the source tree to SourceTreeRefresher.
      */
     public void refreshSourceTree() {
-        SourceTreeRefresher refresher = new SourceTreeRefresher(textAreaTabManager, directoryTree, treeSP);
+        boolean lspActive = lspOrchestrator != null && lspOrchestrator.isLspReady();
+        SourceTreeRefresher refresher = new SourceTreeRefresher(textAreaTabManager, directoryTree, treeSP, lspActive);
         refresher.refresh();
     }
 
     public boolean getIsTerminalToggled() {
         return isTerminalToggled;
+    }
+
+    public LspOrchestrator getLspOrchestrator() {
+        return lspOrchestrator;
     }
 }

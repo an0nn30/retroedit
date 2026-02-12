@@ -40,6 +40,10 @@ public class TextAreaTabManager extends BaseTabManager<TextArea> {
                         && editorFrame.getDirectoryTree().getRootDirectory() != null) {
                     editorFrame.getDirectoryTree().selectFile(currentFile);
                 }
+                // Install LSP features on tab switch
+                if (editorFrame.getLspOrchestrator() != null) {
+                    editorFrame.getLspOrchestrator().installLspFeatures(activeTextArea);
+                }
             }
         });
     }
@@ -177,6 +181,15 @@ public class TextAreaTabManager extends BaseTabManager<TextArea> {
                 && editorFrame.getDirectoryTree().getRootDirectory() != null) {
             editorFrame.getDirectoryTree().selectFile(file);
         }
+        // Install LSP features on the newly opened file.
+        // This is needed because replaceCurrentTab doesn't change the selected index,
+        // so the tab change listener doesn't fire.
+        if (editorFrame.getLspOrchestrator() != null) {
+            TextArea activeTextArea = getActiveTextArea();
+            if (activeTextArea != null) {
+                editorFrame.getLspOrchestrator().installLspFeatures(activeTextArea);
+            }
+        }
     }
 
     public void setSelectedTabByTitle(String title) {
@@ -277,6 +290,10 @@ public class TextAreaTabManager extends BaseTabManager<TextArea> {
             int index = getSelectedIndex();
             setTitleAt(index, file.getName());
             EventBus.publish(EventType.TAB_UPDATED.name(), file.getName(), this);
+            // Notify LSP of file save
+            if (editorFrame.getLspOrchestrator() != null) {
+                editorFrame.getLspOrchestrator().onFileSaved(textArea, file);
+            }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(editorFrame, "Error saving file",
                     "Error", JOptionPane.ERROR_MESSAGE);
@@ -286,6 +303,15 @@ public class TextAreaTabManager extends BaseTabManager<TextArea> {
     public void closeCurrentTab() {
         int index = getSelectedIndex();
         if (index != -1 && confirmSaveIfNeeded()) {
+            // Notify LSP before removing the tab
+            if (editorFrame.getLspOrchestrator() != null) {
+                Component comp = getComponentAt(index);
+                if (comp instanceof JScrollPane scrollPane) {
+                    TextArea ta = (TextArea) scrollPane.getViewport().getView();
+                    File file = FileUtils.getCurrentFile(ta);
+                    editorFrame.getLspOrchestrator().onTabClosed(ta, file);
+                }
+            }
             remove(index);
         }
     }

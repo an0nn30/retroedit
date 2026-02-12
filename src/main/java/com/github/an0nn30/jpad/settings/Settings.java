@@ -24,6 +24,9 @@ public class Settings {
     private String editorFontFamily = "Monospaced";
     private String interfaceFontFamily = "Monospaced";
     private String logLevel = "DEBUG";
+    private boolean lspEnabled = true;
+    private String jdtlsPath = "";
+    private int lspCompletionDelay = 300;
 
     private static final File SETTINGS_FILE = getSettingsFilePath("settings.json").toFile();
 
@@ -243,6 +246,33 @@ public class Settings {
      */
     public String getLogLevel() {
         return logLevel;
+    }
+
+    public boolean isLspEnabled() {
+        return lspEnabled;
+    }
+
+    public void setLspEnabled(boolean lspEnabled) {
+        this.lspEnabled = lspEnabled;
+        saveSettings();
+    }
+
+    public String getJdtlsPath() {
+        return jdtlsPath;
+    }
+
+    public void setJdtlsPath(String jdtlsPath) {
+        this.jdtlsPath = jdtlsPath;
+        saveSettings();
+    }
+
+    public int getLspCompletionDelay() {
+        return lspCompletionDelay;
+    }
+
+    public void setLspCompletionDelay(int lspCompletionDelay) {
+        this.lspCompletionDelay = lspCompletionDelay;
+        saveSettings();
     }
 
     /**

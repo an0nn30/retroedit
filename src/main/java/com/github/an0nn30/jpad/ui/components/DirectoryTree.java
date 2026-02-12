@@ -93,6 +93,9 @@ public class DirectoryTree extends JTree {
         this.rootDirectory = rootDirectory;
         refresh();
         ProjectFileSearchIndex.buildIndex(rootDirectory);
+        if (editorFrame.getLspOrchestrator() != null) {
+            editorFrame.getLspOrchestrator().onWorkspaceOpened(rootDirectory);
+        }
     }
 
     /**

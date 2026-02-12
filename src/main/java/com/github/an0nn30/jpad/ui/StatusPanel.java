@@ -2,6 +2,7 @@ package com.github.an0nn30.jpad.ui;
 
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import com.github.an0nn30.jpad.event.EventRecord;
+import com.github.an0nn30.jpad.lsp.LspClient;
 import com.github.an0nn30.jpad.settings.Constants;
 import com.github.an0nn30.jpad.event.EventBus;
 import com.github.an0nn30.jpad.event.EventType;
@@ -43,8 +44,15 @@ public class StatusPanel extends Panel {
         JToolBar rightToolBar = createToolBar();
         rightToolBar.add(createFileTypeComboBox());
 
+        // Create LSP status label
+        JLabel lspStatusLabel = createLspStatusLabel();
+        JToolBar centerToolBar = createToolBar();
+        centerToolBar.setPreferredSize(new Dimension(300, 24));
+        centerToolBar.add(lspStatusLabel);
+
         // Add the toolbars to the status panel.
         addComponent("toggleTerminalButton", leftToolBar, PanelPosition.LEFT);
+        addComponent("lspStatus", centerToolBar, PanelPosition.CENTER);
         addComponent("fileTypeComboBox", rightToolBar, PanelPosition.RIGHT);
     }
 
@@ -109,6 +117,43 @@ public class StatusPanel extends Panel {
             }
         });
         return comboBox;
+    }
+
+    private JLabel createLspStatusLabel() {
+        JLabel label = new JLabel("");
+        label.setFont(label.getFont().deriveFont(11f));
+
+        EventBus.subscribe(EventType.LSP_STATUS_CHANGED.name(), (EventRecord<Object> eventRecord) -> {
+            SwingUtilities.invokeLater(() -> {
+                Object data = eventRecord.data();
+                if (data instanceof LspClient.Status status) {
+                    switch (status) {
+                        case STARTING -> label.setText("LSP: Starting...");
+                        case READY -> label.setText("LSP: Ready");
+                        case ERROR -> label.setText("LSP: Error");
+                        case SHUTTING_DOWN -> label.setText("LSP: Shutting down...");
+                        default -> label.setText("");
+                    }
+                }
+            });
+        });
+
+        // Subscribe to JDT LS language/status notifications (indexing progress)
+        EventBus.subscribe(EventType.LSP_LANGUAGE_STATUS.name(), (EventRecord<Object> eventRecord) -> {
+            SwingUtilities.invokeLater(() -> {
+                Object data = eventRecord.data();
+                if (data instanceof LspClient.LanguageStatusInfo info) {
+                    switch (info.type()) {
+                        case "Starting" -> label.setText("LSP: " + info.message());
+                        case "Message" -> label.setText("LSP: " + info.message());
+                        case "Started" -> label.setText("LSP: Ready");
+                        default -> { /* ignore */ }
+                    }
+                }
+            });
+        });
+
+        return label;
     }
 
     /**

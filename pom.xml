@@ -136,6 +136,16 @@
             <artifactId>radiance-substance</artifactId>
             <version>4.5.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.lsp4j</groupId>
+            <artifactId>org.eclipse.lsp4j</artifactId>
+            <version>0.21.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.lsp4j</groupId>
+            <artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
+            <version>0.21.1</version>
+        </dependency>
 
     </dependencies>
     <build>
